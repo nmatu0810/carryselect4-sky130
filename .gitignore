@@ -1,0 +1,9 @@
+verif/out/
+syn/out/
+pnr/runs/
+custom/fa/out/
+.venv/
+*.vcd
+node_modules/
+__pycache__/
+*.pyc

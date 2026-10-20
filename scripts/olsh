@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -z "$OL_IMAGE" ] || [ -z "$PDK_ROOT" ]; then
+    source "$SCRIPT_DIR/env.sh"
+fi
+
+if [ -z "$OL_IMAGE" ]; then
+    echo "ERROR: OL_IMAGE is not set and could not be detected." >&2
+    exit 1
+fi
+
+exec docker run --rm \
+    -v "$HOME:$HOME" \
+    -w "$PWD" \
+    -e PDK_ROOT="$PDK_ROOT" \
+    -e PDK="$PDK" \
+    "$OL_IMAGE" bash -lc "$*"
