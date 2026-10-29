@@ -4,5 +4,7 @@
   "env.openlane_version": "LibreLane v3.0.16",
   "env.pdk_hash": "8afc8346a57fe1ab7934ba5a6056ea8b43078e71",
   "env.verilator_version": "Verilator 5.052 2026-09-05 rev v5.052",
-  "env.yosys_version": "Yosys 0.66 (git sha1 86f2ddebc-dirty, g++ 16.1.1 -march=x86-64 -mtune=generic -O2 -fno-plt -fexceptions -fstack-clash-protection -fcf-protection -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/yosys/src=/usr/src/debug/yosys -fPIC -O3) [startdir/yosys at makepkg]"
+  "env.yosys_version": "Yosys 0.66 (git sha1 86f2ddebc-dirty, g++ 16.1.1 -march=x86-64 -mtune=generic -O2 -fno-plt -fexceptions -fstack-clash-protection -fcf-protection -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/yosys/src=/usr/src/debug/yosys -fPIC -O3) [startdir/yosys at makepkg]",
+  "sim.unit_csla4.checked": 512,
+  "sim.unit_csla4.errors": 0
 }

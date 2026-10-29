@@ -286,17 +286,17 @@ sed -n '1p;512p' verif/vectors/exhaustive.hex   # 0000 / 3fff
   - `module rca4(input logic [3:0] a, b, input logic cin, output logic [3:0] sum, output logic cout);` gồm 4 instance `fa`.
 - **Quy ước RTL** (áp dụng cho mọi file trong `rtl/`): dùng `logic`, `always_comb`, `always_ff`, `localparam`. **Không** dùng `typedef enum`, `interface`, `package`; Yosys `read_verilog -sv` phải đọc được.
 
-- [ ] **Step 1: Viết `tb_csla4.sv`**
+- [x] **Step 1: Viết `tb_csla4.sv`**
   - Instance cả `csla4` và `rca4`; vòng lặp 512 tổ hợp theo thứ tự `i = cin*256+b*16+a`.
   - Ở mỗi tổ hợp, so `{cout,sum}` của **cả hai** module với `a+b+cin`.
   - Đếm lỗi, cuối cùng in `RESULT unit_csla4 PASS checked=512 errors=0`. Nếu có lỗi, gọi `$fatal(1, ...)`.
-- [ ] **Step 2:** `make sim-unit`. Kỳ vọng FAIL vì chưa có module.
-- [ ] **Step 3:** Viết 5 file RTL theo đúng Interfaces.
-- [ ] **Step 4: Lint**
+- [x] **Step 2:** `make sim-unit`. Kỳ vọng FAIL vì chưa có module.
+- [x] **Step 3:** Viết 5 file RTL theo đúng Interfaces.
+- [x] **Step 4: Lint**
   - Lệnh: `make lint-comb`, tức `verilator --lint-only -Wall --top-module csla4 rtl/fa.sv rtl/rca2.sv rtl/mux2.sv rtl/csla4.sv`; chạy tương tự với rca4.
   - Kỳ vọng: không có warning nào.
-- [ ] **Step 5:** `make sim-unit`. Kỳ vọng có dòng `RESULT unit_csla4 PASS checked=512 errors=0`. Ghi `sim.unit_csla4.checked`/`errors`.
-- [ ] **Step 6:** Commit `feat(rtl): fa, rca2, mux2, csla4 (2+2) and rca4 reference`.
+- [x] **Step 5:** `make sim-unit`. Kỳ vọng có dòng `RESULT unit_csla4 PASS checked=512 errors=0`. Ghi `sim.unit_csla4.checked`/`errors`.
+- [x] **Step 6:** Commit `feat(rtl): fa, rca2, mux2, csla4 (2+2) and rca4 reference`.
 
 **Reviewer gate:**
 ```bash
