@@ -30,7 +30,8 @@ Mọi con số đo được đều ghi vào một file duy nhất `results/metri
 5. **Kết thúc task:**
    - Chạy đủ các lệnh trong phần **Reviewer gate** và dán output (phần cuối) vào báo cáo task.
    - Commit theo đúng message ghi trong task. Footer commit: `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
-6. **Khi bị chặn:** nếu một gate không qua sau 3 lần sửa, dừng lại và báo cáo trạng thái BLOCKED, kèm lỗi cụ thể. Không nới gate.
+6. **Shell là zsh:** trong lệnh shell, luôn đặt toán tử trong dấu nháy đơn, ví dụ `metrics.py check k '==' 0`, `'>='`, `'<'`. Nếu để trần, zsh sẽ hiểu `==` và `<` theo cú pháp riêng của nó và báo lỗi.
+7. **Khi bị chặn:** nếu một gate không qua sau 3 lần sửa, dừng lại và báo cáo trạng thái BLOCKED, kèm lỗi cụ thể. Không nới gate.
 
 ## Global Constraints
 
@@ -428,7 +429,7 @@ git diff --stat HEAD -- rtl/     # rỗng
 **Reviewer gate:**
 ```bash
 make sim-all | grep -c 'RESULT .* PASS'      # 6
-python3 scripts/metrics.py check sim.latency_cycles == 2 && python3 scripts/metrics.py check sim.cycles_per_result == 2
+python3 scripts/metrics.py check sim.latency_cycles '==' 2 && python3 scripts/metrics.py check sim.cycles_per_result '==' 2
 ls verif/out/case2.vcd verif/out/case4.vcd
 ```
 
@@ -464,8 +465,8 @@ ls verif/out/case2.vcd verif/out/case4.vcd
 **Reviewer gate:**
 ```bash
 make synth sta
-python3 scripts/metrics.py check synth.top.latch_count == 0
-python3 scripts/metrics.py check synth.top.ff_count == 16
+python3 scripts/metrics.py check synth.top.latch_count '==' 0
+python3 scripts/metrics.py check synth.top.ff_count '==' 16
 python3 scripts/metrics.py check synth.top.nand2_eq '<=' 500
 python3 scripts/metrics.py check sta.synth.wns_setup_ns '>=' 0 && python3 scripts/metrics.py check sta.synth.wns_hold_ns '>=' 0
 python3 scripts/metrics.py get sta.synth.crit_path     # kỳ vọng bắt đầu ở a_q/b_q/cin_q, kết thúc ở cout_q hoặc sum_q[3:2]
@@ -571,7 +572,7 @@ jq '."magic__drc_error__count", ."klayout__drc_error__count", ."design__lvs_erro
 **Reviewer gate:**
 ```bash
 for k in wns_setup_ns wns_hold_ns wns_setup_worst_corner_ns wns_hold_worst_corner_ns; do python3 scripts/metrics.py check pnr.$k '>=' 0; done
-for k in drc_magic drc_klayout lvs_errors; do python3 scripts/metrics.py check pnr.$k == 0; done
+for k in drc_magic drc_klayout lvs_errors; do python3 scripts/metrics.py check pnr.$k '==' 0; done
 python3 scripts/metrics.py get pnr.core_util_pct ; file docs/figures/layout_top.png   # PNG 1600 px
 ```
 Ảnh `layout_top.png`: reviewer mở ra xem bằng mắt, phải thấy rõ cell và đường route.
@@ -700,7 +701,7 @@ python3 scripts/metrics.py get fa.sizing_chosen; grep -c 'sky130_fd_pr__' custom
 
 **Reviewer gate:**
 ```bash
-python3 scripts/metrics.py check fa.drc_errors == 0 && python3 scripts/metrics.py check fa.ntrans == 28 && python3 scripts/metrics.py check fa.taps '>=' 2
+python3 scripts/metrics.py check fa.drc_errors '==' 0 && python3 scripts/metrics.py check fa.ntrans '==' 28 && python3 scripts/metrics.py check fa.taps '>=' 2
 grep -c 'Euler' custom/fa/euler.md
 ```
 Ảnh `fa_layout.png`: reviewer mở ra xem bằng mắt.
