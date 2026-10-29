@@ -242,7 +242,7 @@ scripts/olsh "false"; echo $?                         # 1
   - **CLI:** `python3 verif/golden/golden.py --outdir verif/vectors`.
   - **Make:** target `make golden`.
 
-- [ ] **Step 1: Viết test**
+- [x] **Step 1: Viết test**
   ```python
   def test_add4_extremes():
       assert add4(0,0,0) == (0,0); assert add4(15,15,1) == (15,1)   # 31 = 0b1_1111
@@ -256,10 +256,10 @@ scripts/olsh "false"; echo $?                         # 1
       c2 = {((a&3)+(b&3)+c) >> 2 for a,b,c in CASE1_TRIPLES}; assert c2 == {0,1}
   def test_files(tmp_path):  # gọi main(["--outdir", tmp_path]); exhaustive.hex có 512 dòng, dòng 511 == "3fff"
   ```
-- [ ] **Step 2:** `python3 -m pytest verif/golden -q`. Kỳ vọng FAIL.
-- [ ] **Step 3:** Cài đặt `golden.py`. Chỉ dùng stdlib; cài phép cộng bằng `a+b+cin` rồi tách `% 16` và `// 16`.
-- [ ] **Step 4:** Chạy pytest, kỳ vọng `6 passed`. Sau đó chạy `make golden` để sinh hai file hex.
-- [ ] **Step 5:** Commit `feat(verif): python golden model and test vectors`.
+- [x] **Step 2:** `python3 -m pytest verif/golden -q`. Kỳ vọng FAIL.
+- [x] **Step 3:** Cài đặt `golden.py`. Chỉ dùng stdlib; cài phép cộng bằng `a+b+cin` rồi tách `% 16` và `// 16`.
+- [x] **Step 4:** Chạy pytest, kỳ vọng `6 passed`. Sau đó chạy `make golden` để sinh hai file hex.
+- [x] **Step 5:** Commit `feat(verif): python golden model and test vectors`.
 
 **Reviewer gate:**
 ```bash

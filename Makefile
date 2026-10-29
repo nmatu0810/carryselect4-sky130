@@ -1,8 +1,11 @@
 SHELL := /bin/bash
 
-.PHONY: all tools help
+.PHONY: all tools golden help
 
 all: tools
+
+golden:
+	@source scripts/env.sh && python3 verif/golden/golden.py --outdir verif/vectors
 
 tools:
 	@source scripts/env.sh && \
@@ -29,3 +32,4 @@ help:
 	@echo "CarrySelect-4 Makefile"
 	@echo "Targets:"
 	@echo "  tools    - Check toolchain versions and record env metrics"
+	@echo "  golden   - Generate test vectors using golden model"
