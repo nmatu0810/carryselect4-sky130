@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: all tools golden lint-comb sim-unit help
+.PHONY: all tools golden lint-comb sim-unit lint synth-check help
 
 all: tools
 
@@ -11,6 +11,17 @@ lint-comb:
 	@source scripts/env.sh && \
 	verilator --lint-only -Wall --timescale 1ns/1ps --top-module csla4 rtl/fa.sv rtl/rca2.sv rtl/mux2.sv rtl/csla4.sv && \
 	verilator --lint-only -Wall --timescale 1ns/1ps --top-module rca4 rtl/fa.sv rtl/rca4.sv
+
+lint:
+	@source scripts/env.sh && \
+	verilator --lint-only -Wall --timescale 1ns/1ps --top-module carryselect4_top \
+		rtl/fa.sv rtl/rca2.sv rtl/mux2.sv rtl/csla4.sv rtl/csla4_ctrl.sv rtl/carryselect4_top.sv
+
+synth-check:
+	@source scripts/env.sh && \
+	mkdir -p syn/out && \
+	cd syn/out && \
+	yosys -p 'read_verilog -sv ../../rtl/fa.sv ../../rtl/rca2.sv ../../rtl/mux2.sv ../../rtl/csla4.sv ../../rtl/csla4_ctrl.sv ../../rtl/carryselect4_top.sv; synth -top carryselect4_top -flatten; select -assert-none t:$$_DLATCH*; select -assert-count 16 t:$$_DFF*; stat'
 
 sim-unit:
 	@source scripts/env.sh && \
@@ -46,7 +57,9 @@ tools:
 help:
 	@echo "CarrySelect-4 Makefile"
 	@echo "Targets:"
-	@echo "  tools     - Check toolchain versions and record env metrics"
-	@echo "  golden    - Generate test vectors using golden model"
-	@echo "  lint-comb - Lint combinational RTL modules"
-	@echo "  sim-unit  - Run unit simulation for csla4 and rca4"
+	@echo "  tools       - Check toolchain versions and record env metrics"
+	@echo "  golden      - Generate test vectors using golden model"
+	@echo "  lint-comb   - Lint combinational RTL modules"
+	@echo "  sim-unit    - Run unit simulation for csla4 and rca4"
+	@echo "  lint        - Lint carryselect4_top RTL"
+	@echo "  synth-check - Synthesis sanity check with Yosys (assert 16 DFFs, 0 latches)"

@@ -325,14 +325,14 @@ grep -c 'fa ' rtl/rca2.sv; grep -E 'u_hi0|u_hi1|u_mux_co' rtl/csla4.sv   # có �
     - `data_out = {cout_q, sum_q}`.
     - Mọi FF: `always_ff @(posedge clk or negedge rst_n)`, reset về 0 (theo D-1).
 
-- [ ] **Step 1: Viết RTL theo Interfaces.**
-- [ ] **Step 2: Lint**
+- [x] **Step 1: Viết RTL theo Interfaces.**
+- [x] **Step 2: Lint**
   - Lệnh: `make lint`, tức `verilator --lint-only -Wall --top-module carryselect4_top rtl/*.sv` (trừ `rca4.sv`).
   - Kỳ vọng: 0 warning.
-- [ ] **Step 3: Kiểm tra latch và số FF bằng Yosys generic**
+- [x] **Step 3: Kiểm tra latch và số FF bằng Yosys generic**
   - Lệnh: `yosys -q -p "read_verilog -sv rtl/fa.sv rtl/rca2.sv rtl/mux2.sv rtl/csla4.sv rtl/csla4_ctrl.sv rtl/carryselect4_top.sv; synth -top carryselect4_top -flatten; select -assert-none t:\$_DLATCH*; stat"`.
   - Kỳ vọng: lệnh thoát với mã 0, và tổng số cell `$_DFF*`/`$_SDFF*`/`$_DFFE*` bằng 16.
-- [ ] **Step 4:** Commit `feat(rtl): moore FSM controller and registered top-level`.
+- [x] **Step 4:** Commit `feat(rtl): moore FSM controller and registered top-level`.
 
 **Reviewer gate:**
 ```bash
