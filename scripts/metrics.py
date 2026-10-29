@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+import fcntl
 import json
 import os
 import sys
+from contextlib import contextmanager
 from pathlib import Path
 
 
@@ -47,11 +49,24 @@ def parse_val(val_str):
         return val_str
 
 
+@contextmanager
+def metrics_lock():
+    p = get_metrics_path()
+    p.parent.mkdir(parents=True, exist_ok=True)
+    with open(f"{p}.lock", "w") as lock_f:
+        fcntl.flock(lock_f, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock_f, fcntl.LOCK_UN)
+
+
 def set_metric(key: str, value) -> None:
-    data = load_metrics()
     parsed = parse_val(value)
-    data[key] = parsed
-    save_metrics(data)
+    with metrics_lock():
+        data = load_metrics()
+        data[key] = parsed
+        save_metrics(data)
 
 
 def get_metric(key: str):
@@ -69,17 +84,12 @@ def check_metric(key: str, op: str, value) -> int:
     actual = data[key]
     expected = parse_val(value)
 
-    # Type normalization for numbers
-    if isinstance(actual, (int, float)) and isinstance(expected, str):
-        try:
-            expected = float(expected) if "." in expected else int(expected)
-        except ValueError:
-            pass
-    elif isinstance(expected, (int, float)) and isinstance(actual, str):
-        try:
-            actual = float(actual) if "." in actual else int(actual)
-        except ValueError:
-            pass
+    # Numbers are always compared as float (so 1e-3 works)
+    try:
+        actual = float(actual)
+        expected = float(expected)
+    except (TypeError, ValueError):
+        pass
 
     ops = {
         "==": lambda a, b: a == b,
@@ -97,12 +107,6 @@ def check_metric(key: str, op: str, value) -> int:
         return 0 if res else 1
     except Exception:
         return 1
-
-
-# Aliases for direct module usage and testing
-set = set_metric
-get = get_metric
-check = check_metric
 
 
 def main():

@@ -12,8 +12,10 @@ if [ -z "$OL_IMAGE" ]; then
 fi
 
 exec docker run --rm \
+    --user "$(id -u):$(id -g)" \
+    -e HOME="$HOME" \
+    -e PDK_ROOT \
+    -e PDK \
     -v "$HOME:$HOME" \
     -w "$PWD" \
-    -e PDK_ROOT="$PDK_ROOT" \
-    -e PDK="$PDK" \
-    "$OL_IMAGE" bash -lc "$*"
+    "$OL_IMAGE" bash -c "$*"

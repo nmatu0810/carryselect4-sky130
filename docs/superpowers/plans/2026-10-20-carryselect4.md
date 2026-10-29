@@ -186,7 +186,10 @@ Thư mục `verif/out/`, `syn/out/`, `pnr/runs/`, `custom/fa/out/` được đư
   ```
 - [x] **Step 3:** Chạy `python3 -m pytest scripts/test_metrics.py -q`. Kỳ vọng FAIL vì chưa có module.
 - [x] **Step 4:** Viết `scripts/metrics.py`. Chỉ dùng stdlib. Ghi file theo kiểu atomic (ghi file tạm rồi rename). Sắp xếp key khi dump.
-- [x] **Step 5:** Chạy lại pytest. Kỳ vọng `4 passed`.
+  - Toàn bộ chu trình đọc–sửa–ghi của `set` phải nằm trong `fcntl.flock(LOCK_EX)` trên file `<metrics>.lock`, vì hai nhánh task có thể chạy song song.
+  - Có test `test_concurrent_set`: dùng `subprocess` chạy song song 40 lệnh `set k<i> <i>`, sau đó file phải có đủ 40 key.
+  - Trong `check`, so sánh số luôn dùng `float()`, để các giá trị như `1e-3` cũng so được.
+- [x] **Step 5:** Chạy lại pytest. Kỳ vọng `5 passed`.
 - [x] **Step 6: Viết `scripts/env.sh`** (tool đã được người dùng cài theo `docs/SETUP.md`; **không cài gì thêm**)
   - `export PDK_ROOT=$HOME/.ciel/ciel/sky130/versions/8afc8346a57fe1ab7934ba5a6056ea8b43078e71` và `export PDK=sky130A`. Đây là đúng bản PDK mà LibreLane 3.0.16 dùng (đã kiểm tra ngày 2026-10-20).
     - **Phải export** `PDK_ROOT`: magicrc của sky130A chỉ tìm được `sky130A.tech` khi biến này tồn tại.
@@ -196,7 +199,9 @@ Thư mục `verif/out/`, `syn/out/`, `pnr/runs/`, `custom/fa/out/` được đư
   - `FLOW_CLI`: dùng `.venv/bin/librelane` nếu tồn tại, nếu không thì `$FLOW_CLI` (từ `scripts/env.sh`).
   - `LIB_TT=$PDK_ROOT/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib`. Script phải kiểm tra file này tồn tại.
   - Ghi `env.pdk_hash` = `basename $PDK_ROOT`.
-- [x] **Step 7: Viết `scripts/olsh`**: `docker run --rm -v "$HOME:$HOME" -w "$PWD" "$OL_IMAGE" bash -lc "$*"`. Kiểm tra bằng `scripts/olsh "sta -version"`.
+- [x] **Step 7: Viết `scripts/olsh`**: `docker run --rm --user "$(id -u):$(id -g)" -e HOME="$HOME" -e PDK_ROOT -e PDK -v "$HOME:$HOME" -w "$PWD" "$OL_IMAGE" bash -c "$*"`. Kiểm tra bằng `scripts/olsh "sta -version"`.
+  - Phải có `--user`: nếu thiếu, file sinh ra trong repo sẽ thuộc quyền root.
+  - Dùng `bash -c`, **không** dùng `-lc`: login shell sẽ source `~/.bashrc` của host và báo lỗi `sed: command not found`.
 - [x] **Step 8: Kiểm tra tool trên host**
   - Chạy `verilator --version` (phải ≥ 5.0) và `yosys -V`.
   - Magic: `echo quit | magic -dnull -noconsole -rcfile $PDK_ROOT/sky130A/libs.tech/magic/sky130A.magicrc` không có `error`.
@@ -207,7 +212,8 @@ Thư mục `verif/out/`, `syn/out/`, `pnr/runs/`, `custom/fa/out/` được đư
 
 **Reviewer gate:**
 ```bash
-python3 -m pytest scripts/test_metrics.py -q          # 4 passed
+python3 -m pytest scripts/test_metrics.py -q          # 5 passed (có test_concurrent_set)
+scripts/olsh "touch syn_owner_test" && stat -c %u syn_owner_test && rm syn_owner_test   # in ra UID của user (1000), không phải 0
 make tools && python3 scripts/metrics.py get env.verilator_version   # chuỗi bắt đầu bằng "Verilator 5."
 scripts/olsh "true"; echo $?                          # 0
 scripts/olsh "false"; echo $?                         # 1

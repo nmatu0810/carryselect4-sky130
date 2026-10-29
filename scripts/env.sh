@@ -39,8 +39,3 @@ elif [ -n "$FLOW_CLI" ]; then
 else
     export FLOW_CLI="librelane"
 fi
-
-# Record pdk_hash to metrics
-if [ -f "$REPO_DIR/scripts/metrics.py" ]; then
-    python3 "$REPO_DIR/scripts/metrics.py" set env.pdk_hash "$(basename "$PDK_ROOT")" >/dev/null 2>&1 || true
-fi

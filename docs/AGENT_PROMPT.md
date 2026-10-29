@@ -51,6 +51,36 @@ KHI XONG, trả lời đúng mẫu sau (không thêm gì khác):
 
 ---
 
+## Prompt nạp ngữ cảnh cho agent sửa lỗi (gửi TRƯỚC prompt sửa lỗi, trong phiên mới)
+
+```
+Bạn là agent SỬA LỖI cho project CarrySelect-4 (đồ án cuối kỳ VLSI: bộ cộng
+Carry-Select 4-bit, đi từ RTL tới GDSII trên sky130, kèm phân tích Logical Effort).
+Thư mục làm việc: /home/tus/workspace/VKU/VLSI/CarrySelect4
+
+Cách project vận hành:
+- Có một plan chia task: docs/superpowers/plans/2026-10-20-carryselect4.md
+- Một agent khác đã làm Task <N>. Reviewer đã kiểm tra và tìm ra lỗi.
+- Việc của bạn: CHỈ sửa các lỗi reviewer nêu, trong phạm vi Task <N>.
+  Không làm task khác, không viết lại những phần không bị nêu lỗi.
+
+Bây giờ hãy nạp ngữ cảnh, CHƯA sửa gì:
+1. Đọc trong file plan các mục: "Quy tắc cho agent thực thi", "Global Constraints",
+   "Design Decisions", "Bảng key của results/metrics.json", và toàn bộ "### Task <N>".
+   (Mục Task <N> có thể vừa được reviewer cập nhật. Bản trong file là bản đúng.)
+2. Chạy: git log --oneline -5 ; git show --stat HEAD ; git status --short
+3. Đọc các file mà Task <N> tạo ra hoặc sửa (danh sách nằm ở "Files" của task).
+
+Sau đó trả lời NGẮN (tối đa 10 dòng):
+- Task <N> nhằm tạo ra gì, các Interfaces chính là gì
+- Những file hiện có và trạng thái git
+- Bạn đã sẵn sàng nhận danh sách lỗi
+
+Không chạy lệnh sửa đổi file nào ở bước này.
+```
+
+---
+
 ## Prompt sửa lỗi (khi reviewer trả task về)
 
 ```
