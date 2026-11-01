@@ -10,3 +10,4 @@ __pycache__/
 *.lock
 abc.history
 pnr/config_*ns.json
+analysis/le/out/

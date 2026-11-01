@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: pnr pnr5 all tools golden lint-comb sim-unit lint synth-check sim sim-all wave synth sta compare help
+.PHONY: pnr pnr5 tau le-test all tools golden lint-comb sim-unit lint synth-check sim sim-all wave synth sta compare help
 
 all: tools
 
@@ -132,3 +132,9 @@ pnr:
 
 pnr5:
 	@scripts/run_pnr.sh 5 run_5ns
+
+le-test:
+	@python3 -m pytest analysis/le/test_le_calc.py -q
+
+tau:
+	@source scripts/env.sh && python3 analysis/le/run_tau.py
