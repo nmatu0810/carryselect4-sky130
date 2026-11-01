@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: pnr pnr5 tau le-test all tools golden lint-comb sim-unit lint synth-check sim sim-all wave synth sta compare help
+.PHONY: pnr pnr5 tau le-test fa-layout fa-drc fa-lvs fa-pex all tools golden lint-comb sim-unit lint synth-check sim sim-all wave synth sta compare help
 
 all: tools
 
@@ -138,3 +138,18 @@ le-test:
 
 tau:
 	@source scripts/env.sh && python3 analysis/le/run_tau.py
+
+MAGIC_BATCH = magic -dnull -noconsole -rcfile $$PDK_ROOT/sky130A/libs.tech/magic/sky130A.magicrc
+
+fa-layout:
+	@source scripts/env.sh && python3 custom/fa/gen_layout.py && \
+	$(MAGIC_BATCH) custom/fa/out/fa_cell_gen.tcl > custom/fa/out/gen.log 2>&1 && \
+	$(MAGIC_BATCH) custom/fa/drc.tcl | grep DRC_ && python3 scripts/fa_stats.py && \
+	QT_QPA_PLATFORM=offscreen klayout -zz -r scripts/gds2png.py -rd gds=custom/fa/out/fa_cell.gds \
+		-rd out=docs/figures/fa_layout.png -rd w=1600 -rd zoom=0
+
+fa-drc:
+	@source scripts/env.sh && $(MAGIC_BATCH) custom/fa/drc.tcl | grep DRC_
+
+fa-lvs:
+	@custom/fa/lvs.sh
