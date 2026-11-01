@@ -1,0 +1,8 @@
+{
+  "name": "carryselect4-report",
+  "private": true,
+  "type": "module",
+  "description": "Builds report/baocao_CarrySelect4.docx from report/vi/ch*.md",
+  "scripts": { "build": "node build_docx.mjs" },
+  "dependencies": { "docx": "^9.5.0" }
+}

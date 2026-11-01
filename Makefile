@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: paper figures pnr pnr5 tau le-test fa-layout fa-drc fa-lvs fa-pex all tools golden lint-comb sim-unit lint synth-check sim sim-all wave synth sta compare help
+.PHONY: report paper figures pnr pnr5 tau le-test fa-layout fa-drc fa-lvs fa-pex all tools golden lint-comb sim-unit lint synth-check sim sim-all wave synth sta compare help
 
 all: tools
 
@@ -173,3 +173,7 @@ paper:
 	if command -v tectonic > /dev/null; then tectonic -c minimal main.tex; \
 	else latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex > build.log 2>&1 || { tail -n 30 build.log; exit 1; }; fi && \
 	cp main.pdf CarrySelect4_IEEE.pdf && echo "paper/CarrySelect4_IEEE.pdf"
+
+# Vietnamese report (.docx) from report/vi/*.md
+report:
+	@cd report && { [ -d node_modules/docx ] || npm install --no-audit --no-fund > /dev/null; } && node build_docx.mjs
