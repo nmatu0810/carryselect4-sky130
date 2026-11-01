@@ -399,7 +399,7 @@ git diff --stat HEAD -- rtl/     # rỗng
 - Consumes: các task và process của TB (Task 4).
 - Produces: thêm các `+TEST` là `case2`, `case3`, `case4`, `case_illegal`. Ghi các key `sim.case2..4.status`, `sim.case_illegal.status`, `sim.latency_cycles`, `sim.cycles_per_result`.
 
-- [ ] **Step 1: Case 2 (`case2`), thông lượng**
+- [x] **Step 1: Case 2 (`case2`), thông lượng**
   - Gửi 512 vector liên tục; `valid_in=1` ngay khi `ready_out=1`.
   - Kiểm tra:
     - mọi kết quả đều có latency = 2;
@@ -407,24 +407,24 @@ git diff --stat HEAD -- rtl/     # rỗng
     - tổng số chu kỳ từ cạnh nhận đầu tiên tới kết quả cuối ≤ 1024 + 2.
   - Kiểm tra kèm (Review Focus 4): `data_out` chỉ được đổi ở cạnh ngay trước một cạnh có `valid_out=1`. Cụ thể, lưu `data_out` của cạnh trước; nếu giá trị đổi mà `valid_out` hiện tại bằng 0 thì tính là lỗi.
   - In `cycles_per_result=<x>`. Ghi `sim.latency_cycles=2`, `sim.cycles_per_result=<x>` (kỳ vọng 2.0).
-- [ ] **Step 2: Case 3 (`case3`), handshake**
+- [x] **Step 2: Case 3 (`case3`), handshake**
   - Nguồn luôn có dữ liệu. Khi `ready_out=0`, driver vẫn giữ `valid_in=1` nhưng đổi `data_in` sang `~din` (giá trị rác).
   - Thêm 30% bong bóng ngẫu nhiên `valid_in=0` (seed cố định bằng `+SEED=1`).
   - Kiểm tra: số giao dịch nhận được bằng số kết quả bằng 512; hàng đợi rỗng khi kết thúc.
   - Kiểm tra `data_out` giữ nguyên như trong Case 2.
-- [ ] **Step 3: Case 4 (`case4`), reset bất đồng bộ.** Gồm hai biến thể chạy nối tiếp trong cùng test:
+- [x] **Step 3: Case 4 (`case4`), reset bất đồng bộ.** Gồm hai biến thể chạy nối tiếp trong cùng test:
   - **(a) Reset giữa COMPUTE:**
     - Nhận một giao dịch, rồi kéo `rst_n=0` tại `posedge + 3ns`.
     - Sau 1 ns, kiểm tra `valid_out==0`, `ready_out==1`, `data_out==0`.
     - Nhả `rst_n` tại `posedge + 4ns` của chu kỳ sau. Xóa hàng đợi scoreboard (giao dịch bị hủy).
     - Gửi 4 giao dịch mới, tất cả phải đúng. Không được có `valid_out` nào cho giao dịch đã hủy.
   - **(b) Reset trong DONE:** làm tương tự, nhưng kéo reset lúc `valid_out=1`.
-- [ ] **Step 4: Trạng thái không hợp lệ (`case_illegal`)**
+- [x] **Step 4: Trạng thái không hợp lệ (`case_illegal`)**
   - Ở IDLE, `force dut.u_ctrl.state = 2'b11;` giữ 1 chu kỳ, rồi `release`.
   - Kiểm tra: trong lúc state = 11 thì `valid_out==0`; sau ≤ 1 cạnh state về `2'b00`; một giao dịch gửi sau đó cho kết quả đúng.
   - Nếu Verilator không hỗ trợ `force` trên tín hiệu này, ghi D<n> vào DEVIATIONS.md và thay bằng kiểm tra formal: `yosys -p "... ; sat -prove-asserts"` với assert `state != 2'b11 |=> state==S_IDLE`. Đây là phương án dự phòng, chỉ dùng khi bắt buộc.
-- [ ] **Step 5:** `make sim-all`. Kỳ vọng 6 dòng `RESULT ... PASS`.
-- [ ] **Step 6:** Commit `test(verif): throughput, handshake, async reset and illegal-state cases`.
+- [x] **Step 5:** `make sim-all`. Kỳ vọng 6 dòng `RESULT ... PASS`.
+- [x] **Step 6:** Commit `test(verif): throughput, handshake, async reset and illegal-state cases`.
 
 **Reviewer gate:**
 ```bash

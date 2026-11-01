@@ -1,0 +1,20 @@
+=== Task 5 mutation evidence (each mutation reverted with git checkout rtl/<file>) ===
+M1  csla4_ctrl.sv: ready_out = 1'b1
+    case2 -> FAIL: "acceptance gap 1 != 2", "data mismatch"        (make rc=2)
+    case3 -> FAIL: "data mismatch", "latency mismatch exp=2 got=3" (make rc=2)
+M2a csla4_ctrl.sv: out_en = 1'b1 (alone)
+    case2/case3 -> PASS. Equivalent mutant: the input bank only changes on an accepted
+    transaction, so loading the output bank every cycle gives the same data_out waveform.
+M2c csla4_ctrl.sv: out_en = 1'b1 AND ld_en = 1'b1 (both banks load every cycle)
+    case2 -> FAIL: "data_out changed without valid_out! prev=0 now=1" ...   (make rc=2)
+    case3 -> FAIL: "data_out changed without valid_out! prev=0 now=1f" ...  (make rc=2)
+M3a csla4_ctrl.sv: delete the 'default' branch of the FSM case
+    case_illegal -> FAIL: "case_illegal/b: state=01 ... expected 00/0",
+                          "spurious valid_out=1 when scoreboard is empty"   (make rc=2)
+    (only variant (b) catches it: simulation keeps the stale state_next, so variant (a),
+     forced from IDLE, is not enough on its own.)
+M3b csla4_ctrl.sv: default: state_next = state   (state 11 stuck)
+    case_illegal -> FAIL: "state=11 ... one edge after release", then watchdog %Fatal (make rc=2)
+
+Seeds: make sim TEST=case3 SEED=1 -> bubbles=236 stalls=511 (repeatable); SEED=2 -> bubbles=217.
+Check after reverting: git diff --stat -- rtl/   -> empty
