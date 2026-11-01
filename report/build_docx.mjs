@@ -33,11 +33,10 @@ const metrics = JSON.parse(fs.readFileSync(path.join(ROOT, "results", "metrics.j
 
 function sig3(v) {
   if (v === 0 || !Number.isFinite(v)) return String(v);
-  const digits = 3 - Math.floor(Math.log10(Math.abs(v))) - 1;
+  // 3 significant figures, at most 3 decimals; same rule as scripts/metrics_to_tex.py
+  const digits = Math.min(3 - Math.floor(Math.log10(Math.abs(v))) - 1, 3);
   if (digits <= 0) return String(Math.round(v / 10 ** -digits) * 10 ** -digits);
-  let s = v.toFixed(digits);
-  if (s.includes(".")) s = s.replace(/0+$/, "").replace(/\.$/, "");
-  return s;
+  return v.toFixed(digits);
 }
 
 function fmtMetric(v) {
@@ -114,7 +113,9 @@ function caption(text) {
 }
 
 function table(rows, cap) {
-  const cells = rows.map((r) => r.replace(/^\s*\|/, "").replace(/\|\s*$/, "").split("|").map((c) => c.trim()));
+  // split on unescaped "|"; "\|" inside a cell is a literal pipe
+  const cells = rows.map((r) => r.replace(/^\s*\|/, "").replace(/\|\s*$/, "").split(/(?<!\\)\|/)
+    .map((c) => c.trim().replace(/\\\|/g, "|")));
   const ncol = cells[0].length;
   const colW = Array(ncol).fill(Math.floor(TEXT_WIDTH / ncol));
   colW[ncol - 1] += TEXT_WIDTH - colW.reduce((a, b) => a + b, 0);
