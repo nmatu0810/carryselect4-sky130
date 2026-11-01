@@ -20,7 +20,14 @@ if [ "$PERIOD" != "10" ]; then
 fi
 
 echo "SYNTH_HIERARCHY_MODE=keep (LibreLane $($FLOW_CLI --version | head -1))" > results/logs/t8.txt
-$FLOW_CLI --dockerized --run-tag "$TAG" --overwrite --pdk-root "$PDK_ROOT" \
+# Docker image if present, otherwise the tools on PATH (e.g. a nix profile).
+if [ -n "${OL_IMAGE:-}" ]; then MODE=(--dockerized); else
+  MODE=(--manual-pdk)
+  # tools with an embedded Python (yosys -y, openroad -python) need the venv's packages
+  export PATH="$(dirname "$FLOW_CLI"):$PATH"   # bare `python3` calls in flow scripts
+  export PYTHONPATH="$("$(dirname "$FLOW_CLI")/python" -c 'import site; print(site.getsitepackages()[0])')${PYTHONPATH:+:$PYTHONPATH}"
+fi
+$FLOW_CLI "${MODE[@]}" --run-tag "$TAG" --overwrite --pdk-root "$PDK_ROOT" \
  "$CFG" > "results/logs/pnr_${TAG}.log" 2>&1 \
   || { tail -n 40 "results/logs/pnr_${TAG}.log"; exit 1; }
 

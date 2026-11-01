@@ -9,3 +9,4 @@ __pycache__/
 *.pyc
 *.lock
 abc.history
+pnr/config_*ns.json

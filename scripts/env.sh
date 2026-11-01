@@ -4,6 +4,9 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+# Native EDA tools from a nix profile, if installed
+[ -d "$HOME/.nix-profile/bin" ] && case ":$PATH:" in *":$HOME/.nix-profile/bin:"*) ;; *) export PATH="$HOME/.nix-profile/bin:$PATH";; esac
+
 # PDK configuration
 export PDK_ROOT="$HOME/.ciel/ciel/sky130/versions/8afc8346a57fe1ab7934ba5a6056ea8b43078e71"
 export PDK="sky130A"
@@ -22,9 +25,9 @@ fi
 
 # Docker image for LibreLane / OpenLane
 if command -v docker >/dev/null 2>&1; then
-    IMG=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -i librelane | head -1)
+    IMG=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -i librelane | head -1 || true)
     if [ -z "$IMG" ]; then
-        IMG=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -i openlane | head -1)
+        IMG=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -i openlane | head -1 || true)
     fi
     export OL_IMAGE="$IMG"
 fi

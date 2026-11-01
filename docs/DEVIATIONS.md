@@ -28,3 +28,9 @@ Format:
 - Thực tế: thêm `-dont_use sky130_fd_sc_hd__lpflow_*` vào cả `dfflibmap` và `abc`.
 - Lý do: ABC đã map 3 cell `sky130_fd_sc_hd__lpflow_isobufsrc_1` (isolation cell cho power gating) làm logic thường trong `csla4_ctrl`. LibreLane cũng loại các cell `lpflow_*`, nên cách này nhất quán với Task 8.
 - Ảnh hưởng: ABC dùng `nor2b_1` thay thế; số cell (49) và diện tích (817.034 µm²) không đổi. `grep -c lpflow syn/out/carryselect4_top.syn.v` = 0.
+
+## D4: Task 8 chạy LibreLane bằng tool native thay cho `--dockerized`
+- Spec: `$FLOW_CLI --dockerized ...` với image LibreLane và PDK do ciel quản lý (hash `8afc8346…`).
+- Thực tế: môi trường chạy Task 8 (cloud container) không tải được image `ghcr.io/librelane/librelane` và bản phát hành ciel (bị proxy chặn). Flow chạy với `--manual-pdk`, tool lấy từ nixpkgs-unstable (Yosys 0.70, OpenROAD 26Q3/OpenSTA, Magic 8.3.685, Netgen 1.5.325, KLayout 0.30.12), PDK `open_pdks.sky130a 1.0.471` (conda litex-hub). `scripts/run_pnr.sh` chọn `--dockerized` nếu `OL_IMAGE` có giá trị, nếu không thì chạy native (thêm venv vào `PATH`/`PYTHONPATH` cho các tool có Python nhúng).
+- Lý do: không có cách nào khác để chạy flow trong môi trường này; LibreLane 3.0.16 vẫn đọc được cấu hình PDK cũ qua `libs.tech/openlane`.
+- Ảnh hưởng: các số `pnr.*` có thể lệch nhẹ so với chạy bằng image chính thức. Trên máy có image, `make pnr` vẫn chạy chế độ dockerized như spec; nếu chạy lại thì thay `pnr/final/` và cập nhật lại số liệu Task 9.
