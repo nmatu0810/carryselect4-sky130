@@ -7,7 +7,11 @@ if [ -z "$OL_IMAGE" ] || [ -z "$PDK_ROOT" ]; then
 fi
 
 if [ -z "$OL_IMAGE" ]; then
-    echo "ERROR: OL_IMAGE is not set and could not be detected." >&2
+    # no LibreLane image: run natively when the tools are on PATH (see DEVIATIONS D4)
+    if command -v sta >/dev/null 2>&1; then
+        exec bash -c "$*"
+    fi
+    echo "ERROR: OL_IMAGE is not set and could not be detected, and no native sta on PATH." >&2
     exit 1
 fi
 

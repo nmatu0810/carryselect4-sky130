@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: report paper figures pnr pnr5 tau le-test fa-layout fa-drc fa-lvs fa-pex all tools golden lint-comb sim-unit lint synth-check sim sim-all wave synth sta compare help
+.PHONY: verify-all package slides report paper figures pnr pnr5 tau le-test fa-layout fa-drc fa-lvs fa-pex all tools golden lint-comb sim-unit lint synth-check sim sim-all wave synth sta compare help
 
 all: tools
 
@@ -177,3 +177,16 @@ paper:
 # Vietnamese report (.docx) from report/vi/*.md
 report:
 	@cd report && { [ -d node_modules/docx ] || npm install --no-audit --no-fund > /dev/null; } && node build_docx.mjs
+
+slides:
+	@cd slides && { [ -d node_modules/pptxgenjs ] || npm install --no-audit --no-fund > /dev/null; } && node build_slides.mjs
+
+# re-run everything reproducible (not PnR) and every metrics gate of Tasks 5-13
+verify-all:
+	@scripts/verify_all.sh
+
+# submission archive (no venv, node_modules, PnR run directories or out/ folders)
+package:
+	@rm -f CarrySelect4_Nhom7.zip && \
+	git ls-files -z | xargs -0 zip -q CarrySelect4_Nhom7.zip && \
+	unzip -l CarrySelect4_Nhom7.zip | tail -1 && ls -la CarrySelect4_Nhom7.zip

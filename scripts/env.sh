@@ -25,9 +25,9 @@ fi
 
 # Docker image for LibreLane / OpenLane
 if command -v docker >/dev/null 2>&1; then
-    IMG=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -i librelane | head -1 || true)
+    IMG=$(docker images --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep -i librelane | head -1 || true)
     if [ -z "$IMG" ]; then
-        IMG=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -i openlane | head -1 || true)
+        IMG=$(docker images --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep -i openlane | head -1 || true)
     fi
     export OL_IMAGE="$IMG"
 fi
