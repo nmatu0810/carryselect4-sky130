@@ -1,0 +1,40 @@
+* 28T mirror full adder, sizing S1 (W = k * W_unit, k = stack depth of the branch)
+* W_unit: nfet 0.42 um, pfet 0.84 um (le.wn_unit_um / le.wp_unit_um), L = 0.15 um
+* COb = ~MAJ(A,B,CI) (carry gate, 10T) ; CO = ~COb (inverter)
+* Sb  = ~(A^B^CI)     (sum gate using COb, 14T) ; S = ~Sb (inverter)
+.subckt fa_cell A B CI S CO VPWR VGND
+* ---- carry gate: PUN (k=2) ----
+XPC1 cpx  A  VPWR VPWR sky130_fd_pr__pfet_01v8 W=1.68 L=0.15
+XPC2 cpx  B  VPWR VPWR sky130_fd_pr__pfet_01v8 W=1.68 L=0.15
+XPC3 COb  CI cpx  VPWR sky130_fd_pr__pfet_01v8 W=1.68 L=0.15
+XPC4 cpy  A  VPWR VPWR sky130_fd_pr__pfet_01v8 W=1.68 L=0.15
+XPC5 COb  B  cpy  VPWR sky130_fd_pr__pfet_01v8 W=1.68 L=0.15
+* ---- carry gate: PDN (k=2) ----
+XNC1 cnx  A  VGND VGND sky130_fd_pr__nfet_01v8 W=0.84 L=0.15
+XNC2 cnx  B  VGND VGND sky130_fd_pr__nfet_01v8 W=0.84 L=0.15
+XNC3 COb  CI cnx  VGND sky130_fd_pr__nfet_01v8 W=0.84 L=0.15
+XNC4 cny  A  VGND VGND sky130_fd_pr__nfet_01v8 W=0.84 L=0.15
+XNC5 COb  B  cny  VGND sky130_fd_pr__nfet_01v8 W=0.84 L=0.15
+* ---- sum gate: PUN, (A|B|CI) parallel + COb series (k=2) ----
+XPS1 spz  A   VPWR VPWR sky130_fd_pr__pfet_01v8 W=1.68 L=0.15
+XPS2 spz  B   VPWR VPWR sky130_fd_pr__pfet_01v8 W=1.68 L=0.15
+XPS3 spz  CI  VPWR VPWR sky130_fd_pr__pfet_01v8 W=1.68 L=0.15
+XPS4 Sb   COb spz  VPWR sky130_fd_pr__pfet_01v8 W=1.68 L=0.15
+* ---- sum gate: PUN, A-B-CI series (k=3) ----
+XPS5 spw1 A   VPWR VPWR sky130_fd_pr__pfet_01v8 W=2.52 L=0.15
+XPS6 spw2 B   spw1 VPWR sky130_fd_pr__pfet_01v8 W=2.52 L=0.15
+XPS7 Sb   CI  spw2 VPWR sky130_fd_pr__pfet_01v8 W=2.52 L=0.15
+* ---- sum gate: PDN (mirror) ----
+XNS1 snz  A   VGND VGND sky130_fd_pr__nfet_01v8 W=0.84 L=0.15
+XNS2 snz  B   VGND VGND sky130_fd_pr__nfet_01v8 W=0.84 L=0.15
+XNS3 snz  CI  VGND VGND sky130_fd_pr__nfet_01v8 W=0.84 L=0.15
+XNS4 Sb   COb snz  VGND sky130_fd_pr__nfet_01v8 W=0.84 L=0.15
+XNS5 snw1 A   VGND VGND sky130_fd_pr__nfet_01v8 W=1.26 L=0.15
+XNS6 snw2 B   snw1 VGND sky130_fd_pr__nfet_01v8 W=1.26 L=0.15
+XNS7 Sb   CI  snw2 VGND sky130_fd_pr__nfet_01v8 W=1.26 L=0.15
+* ---- output inverters (unit) ----
+XPI1 CO COb VPWR VPWR sky130_fd_pr__pfet_01v8 W=0.84 L=0.15
+XNI1 CO COb VGND VGND sky130_fd_pr__nfet_01v8 W=0.42 L=0.15
+XPI2 S  Sb  VPWR VPWR sky130_fd_pr__pfet_01v8 W=0.84 L=0.15
+XNI2 S  Sb  VGND VGND sky130_fd_pr__nfet_01v8 W=0.42 L=0.15
+.ends fa_cell
