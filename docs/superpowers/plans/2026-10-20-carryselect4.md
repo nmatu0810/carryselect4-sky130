@@ -488,22 +488,22 @@ python3 scripts/metrics.py get sta.synth.crit_path     # kỳ vọng bắt đầ
 - Consumes: `csla4`, `rca4` (Task 2); `LIB_TT`; quy ước WNS ở Task 6.
 - Produces: các key `cmp.{csla4,rca4,csla4_flat,rca4_flat}.{area_um2,nand2_eq,cell_count,delay_ns,adp}`; file `results/cmp.csv` có header `variant,area_um2,nand2_eq,cell_count,delay_ns,adp`.
 
-- [ ] **Step 1: Viết `cmp.sdc`**
+- [x] **Step 1: Viết `cmp.sdc`**
   - Dùng virtual clock: `create_clock -name vclk -period 10`.
   - `set_input_delay 0` và `set_output_delay 0` theo `vclk`; driving cell và load giống D-7.
   - Định nghĩa: **delay = data arrival time** của đường max, đo từ input tới output.
-- [ ] **Step 2: Viết `run_cmp.sh`**
+- [x] **Step 2: Viết `run_cmp.sh`**
   - Chạy 4 biến thể:
     - `csla4` và `rca4`: giữ `keep_hierarchy`.
     - `csla4_flat` và `rca4_flat`: bỏ thuộc tính bằng `setattr -mod -unset keep_hierarchy fa mux2`, sau đó chạy `synth -flatten`.
   - Mỗi biến thể chạy synth rồi STA, sau đó parse và ghi key, đồng thời ghi một dòng CSV.
-- [ ] **Step 3:** `make compare`.
-- [ ] **Step 4: Ghi nhận xét sơ bộ** vào `results/logs/t7.txt`, tối đa 10 dòng:
+- [x] **Step 3:** `make compare`.
+- [x] **Step 4: Ghi nhận xét sơ bộ** vào `results/logs/t7.txt`, tối đa 10 dòng:
   - so delay và area giữa CSLA và RCA (bản giữ phân cấp);
   - so bản flatten với bản giữ phân cấp, tức ABC tái cấu trúc thế nào.
 
   **Không** sửa RTL để số liệu "đẹp hơn". Nếu CSLA không nhanh hơn RCA, cứ ghi đúng như vậy; báo cáo sẽ phân tích nguyên nhân.
-- [ ] **Step 5:** Commit `feat(syn): CSLA vs RCA area-delay comparison`.
+- [x] **Step 5:** Commit `feat(syn): CSLA vs RCA area-delay comparison`.
 
 **Reviewer gate:**
 ```bash

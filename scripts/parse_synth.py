@@ -4,6 +4,8 @@
 Usage (from the repo root, LIB_TT in the environment):
     parse_synth.py synth   # reads syn/out/carryselect4_top.stat.txt and the netlist
     parse_synth.py sta     # reads syn/out/sta.log, writes results/logs/t6_sta.txt
+    parse_synth.py cmp <variant> <top>   # Task 7: syn/out/cmp/<variant>/ -> cmp.<variant>.*
+    parse_synth.py csv     # Task 7: results/cmp.csv from the cmp.* metrics
 
 Yosys 0.66 prints one `stat` table per module (local cells + instance counts of
 submodules) and a trailing "design hierarchy" block. The totals for the top module
@@ -17,7 +19,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from metrics import set_metric  # noqa: E402
+from metrics import get_metric, set_metric  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 STAT = ROOT / "syn/out/carryselect4_top.stat.txt"
@@ -40,6 +42,7 @@ def parse_stat(text):
     modules = {}  # name -> {"cells": {type: (count, area)}, "subs": {name: count}, "local_area": float}
     hier_ref = None
     chip_area_top = None
+    chip_local = {}
     parts = re.split(r"^=== (.+?) ===$", text, flags=re.M)
     # parts = [pre, name1, body1, name2, body2, ...]
     for name, body in zip(parts[1::2], parts[2::2]):
@@ -60,12 +63,19 @@ def parse_stat(text):
             if m:
                 cells[m.group(3)] = (int(m.group(1)), float(m.group(2)))
                 continue
+            # `flatten` leaves $scopeinfo marker cells: counted by Yosys, no area, not hardware
+            m = re.match(r"^\s+(\d+)\s+-\s+(\$scopeinfo)\s*$", line)
+            if m:
+                cells[m.group(2)] = (int(m.group(1)), 0.0)
+                continue
             m = re.match(r"^\s+(\d+)\s+([\d.]+)\s+cells\s*$", line)
             if m:
                 cells_line = (int(m.group(1)), float(m.group(2)))
-            m = re.search(r"Chip area for top module '\\?(\S+?)':\s+([\d.]+)", line)
-            if m:
-                chip_area_top = (m.group(1), float(m.group(2)))
+            m = re.search(r"Chip area for (top )?module '\\?(\S+?)':\s+([\d.]+)", line)
+            if m and m.group(1):
+                chip_area_top = (m.group(2), float(m.group(3)))
+            elif m:
+                chip_local[m.group(2)] = float(m.group(3))
         if name == "design hierarchy":
             hier_ref = {"cells_line": cells_line, "types": cells}
             continue
@@ -74,7 +84,7 @@ def parse_stat(text):
         if cells_line and (cells_line[0] != local_cells or abs(cells_line[1] - local_area) > AREA_TOL):
             die(f"module {name}: 'cells' line {cells_line} != sum of its cell rows ({local_cells}, {local_area:.3f})")
         modules[name] = {"cells": cells, "subs": subs, "local_area": local_area}
-    return modules, hier_ref, chip_area_top
+    return modules, hier_ref, chip_area_top, chip_local
 
 
 def totals(modules, name, memo):
@@ -108,6 +118,36 @@ def nand2_area_from_lib(lib):
     return float(m.group(1))
 
 
+def analyze(stat_path, top):
+    """(cell_count, area, {type: count}) of `top` including submodules, cross-checked."""
+    modules, hier_ref, chip_top, chip_local = parse_stat(Path(stat_path).read_text())
+    if top not in modules:
+        die(f"no stat table for {top}")
+    count, area, types = totals(modules, top, {})
+
+    # cross-checks against what Yosys itself reports
+    if chip_top is not None:
+        if chip_top[0] != top:
+            die(f"'Chip area for top module' is for {chip_top[0]}, expected {top}")
+        ref_area = chip_top[1]
+    elif top in chip_local and not modules[top]["subs"]:
+        ref_area = chip_local[top]  # single flat module: Yosys prints the plain line
+    else:
+        die("'Chip area for top module' line not found")
+    if abs(area - ref_area) > AREA_TOL:
+        die(f"area mismatch: rebuilt {area:.3f} vs Yosys {ref_area:.3f}")
+    if hier_ref is not None:
+        cl = hier_ref["cells_line"]
+        if cl is None or cl[0] != count or abs(cl[1] - area) > AREA_TOL:
+            die(f"design hierarchy totals {cl} != rebuilt ({count}, {area:.3f})")
+        if {t: c for t, (c, _) in hier_ref["types"].items()} != types:
+            die(f"per-cell-type totals differ: yosys={hier_ref['types']} rebuilt={types}")
+        if abs(sum(a for _, a in hier_ref["types"].values()) - area) > 0.05:
+            die("sum of design-hierarchy cell rows != total area")
+    count -= types.pop("$scopeinfo", 0)  # not physical cells
+    return count, ref_area, types  # Yosys' exact area figure
+
+
 def do_synth():
     lib = os.environ.get("LIB_TT")
     if not lib or not Path(lib).is_file():
@@ -121,26 +161,7 @@ def do_synth():
         if not re.search(rf"^module {mod}\b", net, flags=re.M):
             die(f"netlist lost module '{mod}' (keep_hierarchy not honoured)")
 
-    modules, hier_ref, chip_top = parse_stat(STAT.read_text())
-    if TOP not in modules:
-        die(f"no stat table for {TOP}")
-    count, area, types = totals(modules, TOP, {})
-
-    # cross-checks against what Yosys itself reports
-    if chip_top is None or chip_top[0] != TOP:
-        die("'Chip area for top module' line not found")
-    if abs(area - chip_top[1]) > AREA_TOL:
-        die(f"area mismatch: rebuilt {area:.3f} vs Yosys top-module {chip_top[1]:.3f}")
-    if hier_ref is not None:
-        cl = hier_ref["cells_line"]
-        if cl is None or cl[0] != count or abs(cl[1] - area) > AREA_TOL:
-            die(f"design hierarchy totals {cl} != rebuilt ({count}, {area:.3f})")
-        if {t: c for t, (c, _) in hier_ref["types"].items()} != types:
-            die(f"per-cell-type totals differ: yosys={hier_ref['types']} rebuilt={types}")
-        if abs(sum(a for _, a in hier_ref["types"].values()) - area) > 0.05:
-            die("sum of design-hierarchy cell rows != total area")
-
-    area = chip_top[1]  # rebuilt value agrees within AREA_TOL; use Yosys' exact figure
+    count, area, types = analyze(STAT, TOP)
     ff = sum(c for t, c in types.items() if "df" in t)
     latch = sum(c for t, c in types.items() if "dlx" in t or "dlatch" in t)
     nand2 = nand2_area_from_lib(lib)
@@ -259,7 +280,65 @@ def do_sta():
     print("\n".join(out[:5]))
 
 
+# ----------------------------------------------------------------------------- compare (Task 7)
+CMP_VARIANTS = ["csla4", "rca4", "csla4_flat", "rca4_flat"]
+CMP_FIELDS = ["area_um2", "nand2_eq", "cell_count", "delay_ns", "adp"]
+
+
+def do_cmp(variant, top):
+    d = ROOT / "syn/out/cmp" / variant
+    stat, net, log = d / "stat.txt", d / "netlist.syn.v", d / "sta.log"
+    for f in (stat, net, log):
+        if not f.is_file():
+            die(f"{f} missing (run scripts/run_cmp.sh)")
+    text = log.read_text()
+    if "=== END ===" not in text or re.search(r"^Error", text, flags=re.M):
+        die(f"{log} incomplete or contains errors")
+    try:
+        nand2 = float(get_metric("synth.nand2_area_um2"))
+    except KeyError:
+        die("synth.nand2_area_um2 missing: run `make synth` first")
+
+    count, area, _ = analyze(stat, top)
+    paths = parse_paths(split_sections(text)["cmp"])
+    if len(paths) != 1:
+        die(f"expected exactly one max input->output path, got {len(paths)}")
+    p = paths[0]
+    delay = p["arrival"]
+    if delay <= 0:
+        die(f"non-positive delay {delay}")
+
+    area = round(area, 3)
+    set_metric(f"cmp.{variant}.area_um2", area)
+    set_metric(f"cmp.{variant}.nand2_eq", round(area / nand2, 3))
+    set_metric(f"cmp.{variant}.cell_count", count)
+    set_metric(f"cmp.{variant}.delay_ns", delay)
+    set_metric(f"cmp.{variant}.adp", round(area * delay, 3))
+    print(f"{variant:11s} cells={count:3d} area={area:8.3f} um2 nand2_eq={area / nand2:7.3f} "
+          f"delay={delay:.3f} ns  longest path: {p['start']} -> {p['end']}")
+
+
+def do_csv():
+    rows = ["variant,area_um2,nand2_eq,cell_count,delay_ns,adp"]
+    for v in CMP_VARIANTS:
+        try:
+            rows.append(",".join([v] + [str(get_metric(f"cmp.{v}.{f}")) for f in CMP_FIELDS]))
+        except KeyError as e:
+            die(f"metric {e} missing")
+    out = ROOT / "results/cmp.csv"
+    out.write_text("\n".join(rows) + "\n")
+    print("\n".join(rows))
+
+
 if __name__ == "__main__":
-    if len(sys.argv) != 2 or sys.argv[1] not in ("synth", "sta"):
-        die("usage: parse_synth.py synth|sta")
-    do_synth() if sys.argv[1] == "synth" else do_sta()
+    mode = sys.argv[1] if len(sys.argv) > 1 else ""
+    if mode == "synth" and len(sys.argv) == 2:
+        do_synth()
+    elif mode == "sta" and len(sys.argv) == 2:
+        do_sta()
+    elif mode == "cmp" and len(sys.argv) == 4:
+        do_cmp(sys.argv[2], sys.argv[3])
+    elif mode == "csv" and len(sys.argv) == 2:
+        do_csv()
+    else:
+        die("usage: parse_synth.py synth|sta|csv|cmp <variant> <top>")

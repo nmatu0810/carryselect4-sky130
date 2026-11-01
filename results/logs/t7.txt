@@ -1,0 +1,10 @@
+Task 7: CSLA-4 vs RCA-4, tt_025C_1v80, virtual clock, I/O delay 0. delay = longest input->output arrival.
+csla4      236.5 um2  63.0 nand2_eq  15 cells  1.242 ns  a[0] -> cout    (maj3, maj3, mux2)
+rca4       135.1 um2  36.0 nand2_eq   8 cells  1.710 ns  a[0] -> sum[3]  (maj3 x3, xor3)
+csla4_flat 112.6 um2  30.0 nand2_eq  18 cells  1.595 ns  a[0] -> sum[1]
+rca4_flat  108.9 um2  29.0 nand2_eq  14 cells  2.005 ns  cin  -> sum[2]
+Hierarchy kept: CSLA is 27% faster (1.242 vs 1.710 ns) but 1.75x the area, so ADP is worse (293.7 vs 231.1 um2.ns).
+Flattened: ABC cuts area (CSLA -52%, RCA -19%) and slows both (CSLA +28%, RCA +17% delay). Flat CSLA still beats flat RCA (1.595 vs 2.005 ns) and has the best ADP (179.6 vs 218.3).
+Flat critical paths end in small o21ai_0 gates after two maj3 stages; the hierarchical fa is pinned to maj3_1 + xor3_1.
+Hypotheses (not checked): ABC maps for area first and trades speed; 4 bits is short, so duplicated hi blocks cost more area than the mux saves in delay.
+Final designs use the hierarchical form (Task 6, D-6), so the CSLA speed-up is real but costs area.

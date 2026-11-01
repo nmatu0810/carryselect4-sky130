@@ -1,0 +1,14 @@
+# Task 7 synthesis template: same mapping flow as syn/synth.ys (D3: no lpflow cells).
+# Placeholders are filled by scripts/run_cmp.sh:
+#   @TOP@ @LIB@ @ROOT@, @UNSET@ (flat variants: unset keep_hierarchy on fa/mux2), @FLATTEN@ ("-flatten" or empty)
+read_verilog -sv @ROOT@/rtl/fa.sv @ROOT@/rtl/rca2.sv @ROOT@/rtl/mux2.sv @ROOT@/rtl/csla4.sv @ROOT@/rtl/rca4.sv
+hierarchy -check -top @TOP@
+@UNSET@
+synth -top @TOP@ @FLATTEN@
+dfflibmap -liberty @LIB@ -dont_use sky130_fd_sc_hd__lpflow_*
+abc -liberty @LIB@ -dont_use sky130_fd_sc_hd__lpflow_*
+opt_clean
+read_liberty -lib @LIB@
+rename -wire
+tee -o stat.txt stat -liberty @LIB@
+write_verilog -noattr -norename netlist.syn.v

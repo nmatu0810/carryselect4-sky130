@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: all tools golden lint-comb sim-unit lint synth-check sim sim-all wave synth sta help
+.PHONY: all tools golden lint-comb sim-unit lint synth-check sim sim-all wave synth sta compare help
 
 all: tools
 
@@ -39,6 +39,9 @@ sta:
 	scripts/olsh "LIB_TT=$$LIB_TT sta -no_splash -exit syn/sta.tcl" > syn/out/sta.log 2>&1; \
 	rc=$$?; if [ $$rc -ne 0 ]; then tail -n 20 syn/out/sta.log; exit $$rc; fi; \
 	python3 scripts/parse_synth.py sta
+
+compare:
+	@scripts/run_cmp.sh
 
 sim-unit:
 	@source scripts/env.sh && \
@@ -119,6 +122,7 @@ help:
 	@echo "  synth-check - Synthesis sanity check with Yosys (assert 16 DFFs, 0 latches)"
 	@echo "  synth       - Yosys sky130 synthesis of carryselect4_top (syn/out), writes synth.* metrics"
 	@echo "  sta         - OpenSTA (Docker) on the synthesized netlist, writes sta.synth.* metrics"
+	@echo "  compare     - CSLA-4 vs RCA-4 area-delay (hier + flat), writes cmp.* metrics and results/cmp.csv"
 	@echo "  sim         - Run simulation for TEST=<name> (default: case1)"
 	@echo "  sim-all     - Run all simulation testcases"
 	@echo "  wave        - Open waveform in GTKWave for TEST=<name>"
