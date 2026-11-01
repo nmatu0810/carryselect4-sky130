@@ -1,0 +1,8 @@
+{
+  "name": "carryselect4-slides",
+  "private": true,
+  "type": "module",
+  "description": "Builds slides/CarrySelect4_BaoVe.pptx (defense deck) from results/metrics.json and docs/figures",
+  "scripts": { "build": "node build_slides.mjs" },
+  "dependencies": { "pptxgenjs": "^4.0.1", "jszip": "^3.10.1" }
+}
