@@ -1,0 +1,13 @@
+PEX: 80 non-zero capacitors (+22 zero-valued entries written by cthresh 0), 28 devices
+source/drain area from layout: sum(ad)=17.53 um2, sum(as)=16.97 um2 (schematic netlist has no ad/as/pd/ps -> no junction capacitance pre-layout)
+largest wiring capacitance per net (fF, includes caps to VGND/VPWR):
+  VGND               21.46
+  VPWR               10.35
+  A                   4.23
+  B                   4.20
+  a_367_887#          3.92
+  CI                  3.64
+  a_167_767#          2.34
+  a_855_1660#         1.10
+  a_2255_1660#        0.85
+  a_2255_252#         0.77

@@ -1,0 +1,30 @@
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes sky130_fd_pr__pfet_01v8 and sky130_fd_pr__pfet_01v8 are equivalent.
+
+Subcircuit summary:
+Circuit 1: fa_cell                         |Circuit 2: fa_cell                         
+-------------------------------------------|-------------------------------------------
+sky130_fd_pr__nfet_01v8 (14)               |sky130_fd_pr__nfet_01v8 (14)               
+sky130_fd_pr__pfet_01v8 (14)               |sky130_fd_pr__pfet_01v8 (14)               
+Number of devices: 28                      |Number of devices: 28                      
+Number of nets: 19                         |Number of nets: 19                         
+---------------------------------------------------------------------------------------
+Netlists match uniquely.
+
+Subcircuit pins:
+Circuit 1: fa_cell                         |Circuit 2: fa_cell                         
+-------------------------------------------|-------------------------------------------
+CI                                         |CI                                         
+CO                                         |CO                                         
+S                                          |S                                          
+VPWR                                       |VPWR                                       
+VGND                                       |VGND                                       
+A                                          |A                                          
+B                                          |B                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes fa_cell and fa_cell are equivalent.
+
+Final result: Circuits match uniquely.
+.

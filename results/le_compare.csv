@@ -1,0 +1,4 @@
+method,delay_ps,err_vs_post_pct
+LE_estimate,312.03,-25.68
+SPICE_pre,263.91,-37.14
+SPICE_post,419.86,0.0

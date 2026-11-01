@@ -153,3 +153,7 @@ fa-drc:
 
 fa-lvs:
 	@custom/fa/lvs.sh
+
+fa-pex:
+	@source scripts/env.sh && $(MAGIC_BATCH) custom/fa/pex.tcl > custom/fa/out/pex.log 2>&1 && \
+	python3 analysis/le/compare.py
