@@ -1,0 +1,20 @@
+=== Task 4 mutation evidence ===
+Mutation A (Step 5): rtl/mux2.sv  y = sel ? d1 : d0  ->  y = sel ? d0 : d1  (inverted select)
+Command: make sim TEST=case5
+Output (key lines):
+RESULT case5 FAIL checked=512 errors=512
+[10335000] %Fatal: tb_top.sv:149: Assertion failed in tb_top.finish_test: Test case5 failed with 512 errors
+make: *** [Makefile:60: sim] Error 1
+=> TB catches the mutation (errors > 0, make exits non-zero, sim.case5.status=FAIL).
+
+Mutation B (extra, monitor sanity): rtl/csla4_ctrl.sv  valid_out = DONE  ->  DONE | COMPUTE
+Command: make sim TEST=case1
+Output (first lines):
+ERROR [cycle 4]: latency mismatch! exp=2 got=1 (accepted at cycle 3)
+ERROR [cycle 5]: spurious valid_out=1 when scoreboard is empty! data_out=0
+ERROR [cycle 7]: data mismatch! exp=1f got=0
+=> latency check and "valid_out with empty scoreboard" check both fire.
+
+Both mutations reverted with: git checkout rtl/<file>
+Check: git diff --stat -- rtl/   -> empty
+Unknown plusarg: ./verif/out/top/sim_top +TEST=bogus -> %Fatal "unknown test bogus", rc=1

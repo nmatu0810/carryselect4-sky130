@@ -366,19 +366,19 @@ grep -n 'default' rtl/csla4_ctrl.sv      # nhánh default chuyển về S_IDLE
     - biến đếm `cycle`, `n_checked`, `n_err`;
     - `task automatic finish_test(string name)`: chờ `sb_q` rỗng (timeout 50 chu kỳ), kiểm tra `n_checked` bằng số giao dịch đã gửi, rồi in kết quả.
 
-- [ ] **Step 1: Viết khung TB** gồm clock, reset, driver, monitor, scoreboard, đọc vector bằng `$readmemh("verif/vectors/<file>.hex", mem)`, và nhánh chọn theo `+TEST`.
-- [ ] **Step 2: Case 1 (`case1`)**
+- [x] **Step 1: Viết khung TB** gồm clock, reset, driver, monitor, scoreboard, đọc vector bằng `$readmemh("verif/vectors/<file>.hex", mem)`, và nhánh chọn theo `+TEST`.
+- [x] **Step 2: Case 1 (`case1`)**
   - Gửi các vector trong `case1.hex`, giữa hai giao dịch có 2 chu kỳ `valid_in=0`.
   - Kiểm tra thêm: vector `(15,15,1)` phải ra `data_out == 5'h1F`; vector `(15,1,0)` phải ra `cout == 1`.
-- [ ] **Step 3: Case 5 (`case5`)**
+- [x] **Step 3: Case 5 (`case5`)**
   - Gửi đủ 512 vector của `exhaustive.hex`, giữa hai giao dịch có 1 chu kỳ nghỉ.
   - Kỳ vọng `checked=512 errors=0`.
-- [ ] **Step 4:** `make sim TEST=case1 && make sim TEST=case5`. Kỳ vọng 2 dòng PASS.
-- [ ] **Step 5: Kiểm tra TB biết bắt lỗi**
+- [x] **Step 4:** `make sim TEST=case1 && make sim TEST=case5`. Kỳ vọng 2 dòng PASS.
+- [x] **Step 5: Kiểm tra TB biết bắt lỗi**
   - Tạm sửa `rtl/mux2.sv` thành `y = sel ? d0 : d1`, chạy `make sim TEST=case5`. Kỳ vọng FAIL với `errors > 0`.
   - Hoàn tác thay đổi (`git checkout rtl/mux2.sv`). Ghi kết quả bước này vào `results/logs/t4.txt`.
-- [ ] **Step 6:** Ghi các key `sim.case1.status`, `sim.case5.status`, `sim.exhaustive.checked=512`, `sim.exhaustive.errors=0`.
-- [ ] **Step 7:** Commit `test(verif): self-checking top TB with scoreboard; case1, case5`.
+- [x] **Step 6:** Ghi các key `sim.case1.status`, `sim.case5.status`, `sim.exhaustive.checked=512`, `sim.exhaustive.errors=0`.
+- [x] **Step 7:** Commit `test(verif): self-checking top TB with scoreboard; case1, case5`.
 
 **Reviewer gate:**
 ```bash
