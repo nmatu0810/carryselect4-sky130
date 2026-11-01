@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: pnr pnr5 tau le-test fa-layout fa-drc fa-lvs fa-pex all tools golden lint-comb sim-unit lint synth-check sim sim-all wave synth sta compare help
+.PHONY: figures pnr pnr5 tau le-test fa-layout fa-drc fa-lvs fa-pex all tools golden lint-comb sim-unit lint synth-check sim sim-all wave synth sta compare help
 
 all: tools
 
@@ -157,3 +157,12 @@ fa-lvs:
 fa-pex:
 	@source scripts/env.sh && $(MAGIC_BATCH) custom/fa/pex.tcl > custom/fa/out/pex.log 2>&1 && \
 	python3 analysis/le/compare.py
+
+PY ?= .venv/bin/python
+
+# all report/paper figures (needs matplotlib + vcdvcd in .venv)
+figures:
+	@$(MAKE) -s sim TEST=case2 > /dev/null && $(MAKE) -s sim TEST=case4 > /dev/null && \
+	source scripts/env.sh && ngspice -b custom/fa/sim/path_post.sp > custom/fa/out/path_post.log 2>&1 && \
+	for s in block_diagram csla_struct fsm waves area_delay le_vs_spice fa_transient; do \
+		$(PY) scripts/figs/make_$$s.py || exit 1; done
