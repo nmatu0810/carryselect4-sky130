@@ -23,6 +23,7 @@ ROOT = Path(__file__).resolve().parent.parent
 STAT = ROOT / "syn/out/carryselect4_top.stat.txt"
 NETLIST = ROOT / "syn/out/carryselect4_top.syn.v"
 STA_LOG = ROOT / "syn/out/sta.log"
+SDC = ROOT / "syn/constraints.sdc"
 T6_LOG = ROOT / "results/logs/t6_sta.txt"
 TOP = "carryselect4_top"
 AREA_TOL = 0.01  # um^2; Yosys prints 3 decimals
@@ -226,9 +227,15 @@ def do_sta():
     set_metric("sta.synth.crit_arrival_ns", crit["arrival"])
     set_metric("sta.synth.worst_path", f"{w_setup['start']} -> {w_setup['end']}")
 
+    # clock period comes from the SDC that STA actually read (never hard-coded)
+    mp = re.search(r"create_clock\b.*?-period\s+([\d.]+)", SDC.read_text())
+    if not mp:
+        die("create_clock -period not found in syn/constraints.sdc")
+    period = f"{float(mp.group(1)):g}"
+
     # results/logs/t6_sta.txt (<= 60 lines): summary + full reg->reg path
     out = [
-        "Task 6 STA (tt_025C_1v80, clk 10 ns, synthesized netlist, ideal clock)",
+        f"Task 6 STA (tt_025C_1v80, clk {period} ns, synthesized netlist, ideal clock)",
         f"worst setup (whole design): {w_setup['start']} -> {w_setup['end']}  slack {w_setup['slack']:.3f} ns",
         f"worst hold  (whole design): {w_hold['start']} -> {w_hold['end']}  slack {w_hold['slack']:.3f} ns",
         f"critical reg->reg: {crit['start']} -> {crit['end']}  arrival {crit['arrival']:.3f} ns  slack {crit['slack']:.3f} ns",
