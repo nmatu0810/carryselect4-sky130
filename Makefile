@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: all tools golden lint-comb sim-unit lint synth-check sim sim-all wave help
+.PHONY: all tools golden lint-comb sim-unit lint synth-check sim sim-all wave synth sta help
 
 all: tools
 
@@ -25,6 +25,20 @@ synth-check:
 	mkdir -p syn/out && \
 	cd syn/out && \
 	yosys -p 'read_verilog -sv ../../rtl/fa.sv ../../rtl/rca2.sv ../../rtl/mux2.sv ../../rtl/csla4.sv ../../rtl/csla4_ctrl.sv ../../rtl/carryselect4_top.sv; synth -top carryselect4_top -flatten; select -assert-none t:$$_DLATCH*; select -assert-count 16 t:$$_DFF*; stat'
+
+synth:
+	@source scripts/env.sh && \
+	mkdir -p syn/out && \
+	sed -e "s|@LIB@|$$LIB_TT|g" -e "s|@ROOT@|$$REPO_DIR|g" syn/synth.ys > syn/out/synth.gen.ys && \
+	cd syn/out && yosys -q -l yosys.log synth.gen.ys > /dev/null && cd ../.. && \
+	python3 scripts/parse_synth.py synth
+
+sta:
+	@source scripts/env.sh && \
+	mkdir -p syn/out results/logs && \
+	scripts/olsh "LIB_TT=$$LIB_TT sta -no_splash -exit syn/sta.tcl" > syn/out/sta.log 2>&1; \
+	rc=$$?; if [ $$rc -ne 0 ]; then tail -n 20 syn/out/sta.log; exit $$rc; fi; \
+	python3 scripts/parse_synth.py sta
 
 sim-unit:
 	@source scripts/env.sh && \
@@ -103,6 +117,8 @@ help:
 	@echo "  sim-unit    - Run unit simulation for csla4 and rca4"
 	@echo "  lint        - Lint carryselect4_top RTL"
 	@echo "  synth-check - Synthesis sanity check with Yosys (assert 16 DFFs, 0 latches)"
+	@echo "  synth       - Yosys sky130 synthesis of carryselect4_top (syn/out), writes synth.* metrics"
+	@echo "  sta         - OpenSTA (Docker) on the synthesized netlist, writes sta.synth.* metrics"
 	@echo "  sim         - Run simulation for TEST=<name> (default: case1)"
 	@echo "  sim-all     - Run all simulation testcases"
 	@echo "  wave        - Open waveform in GTKWave for TEST=<name>"

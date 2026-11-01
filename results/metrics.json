@@ -16,5 +16,16 @@
   "sim.exhaustive.errors": 0,
   "sim.latency_cycles": 2,
   "sim.unit_csla4.checked": 512,
-  "sim.unit_csla4.errors": 0
+  "sim.unit_csla4.errors": 0,
+  "sta.synth.crit_arrival_ns": 1.784,
+  "sta.synth.crit_path": "a_q[0] -> cout_q",
+  "sta.synth.wns_hold_ns": 0.243,
+  "sta.synth.wns_setup_ns": 6.775,
+  "sta.synth.worst_path": "valid_in -> a_q[0]",
+  "synth.nand2_area_um2": 3.7536,
+  "synth.top.area_um2": 817.034,
+  "synth.top.cell_count": 49,
+  "synth.top.ff_count": 16,
+  "synth.top.latch_count": 0,
+  "synth.top.nand2_eq": 217.667
 }

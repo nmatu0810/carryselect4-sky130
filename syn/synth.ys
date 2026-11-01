@@ -1,0 +1,13 @@
+# Yosys synthesis script (run from syn/out by `make synth`).
+# @LIB@ = $LIB_TT, @ROOT@ = repo root; both substituted by the Makefile.
+read_verilog -sv @ROOT@/rtl/fa.sv @ROOT@/rtl/rca2.sv @ROOT@/rtl/mux2.sv @ROOT@/rtl/csla4.sv @ROOT@/rtl/csla4_ctrl.sv @ROOT@/rtl/carryselect4_top.sv
+hierarchy -check -top carryselect4_top
+synth -top carryselect4_top
+dfflibmap -liberty @LIB@
+abc -liberty @LIB@
+opt_clean
+# name cells after the wires they drive (a_q[0], sum_q[2], ...) so STA paths are readable
+read_liberty -lib @LIB@
+rename -wire
+tee -o carryselect4_top.stat.txt stat -liberty @LIB@
+write_verilog -noattr -norename carryselect4_top.syn.v

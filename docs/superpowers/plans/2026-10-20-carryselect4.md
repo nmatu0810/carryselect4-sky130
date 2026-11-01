@@ -449,22 +449,22 @@ ls verif/out/case2.vcd verif/out/case4.vcd
   - Các key `synth.*` và `sta.synth.*`.
   - `results/logs/t6_sta.txt`: đường tới hạn dạng full, tối đa 60 dòng.
 
-- [ ] **Step 1: Viết `synth.ys`**
+- [x] **Step 1: Viết `synth.ys`**
   - Đọc RTL (không đọc `rca4.sv`) → `hierarchy -check -top carryselect4_top` → `synth -top carryselect4_top` → `dfflibmap -liberty $LIB_TT` → `abc -liberty $LIB_TT` → `opt_clean` → `stat -liberty $LIB_TT` → `write_verilog -noattr`.
   - Truyền đường dẫn liberty bằng `-p`, hoặc sinh file `.ys` từ Makefile.
-- [ ] **Step 2: Viết `constraints.sdc`** theo D-7. Danh sách input lấy bằng `[delete_from_list [all_inputs] [get_ports clk]]`.
-- [ ] **Step 3: Viết `sta.tcl`**
+- [x] **Step 2: Viết `constraints.sdc`** theo D-7. Danh sách input lấy bằng `[delete_from_list [all_inputs] [get_ports clk]]`.
+- [x] **Step 3: Viết `sta.tcl`**
   - Trình tự: `read_liberty`, `read_verilog`, `link_design carryselect4_top`, `read_sdc`.
   - Report: `report_checks -path_delay max -fields {slew cap input_pins} -digits 3`, `report_checks -path_delay min`, `report_wns`, `report_worst_slack -max/-min`.
   - **Thêm report reg→reg riêng:** `report_checks -path_delay max -from [all_registers -clock_pins] -to [all_registers -data_pins] -fields {slew cap input_pins} -digits 3`. Lý do: với input/output delay 2 ns, đường có slack xấu nhất toàn thiết kế gần như chắc chắn là đường I/O (`data_in`/`valid_in` → FF, hoặc FF → `data_out`), không phải bộ cộng. Đường của bộ cộng (`a_q/b_q/cin_q` → `sum_q/cout_q`) chỉ hiện ra ở report reg→reg.
   - Ghi vào `results/logs/t6_sta.txt` cả hai: đường reg→reg đầy đủ (≤ 60 dòng) và tóm tắt startpoint/endpoint/slack của đường xấu nhất toàn thiết kế.
-- [ ] **Step 4: Viết `parse_synth.py`**
+- [x] **Step 4: Viết `parse_synth.py`**
   - Đọc log `stat` và log STA, rồi ghi các key: `synth.top.cell_count`, `synth.top.area_um2`, `synth.top.ff_count` (đếm cell tên chứa `df`), `synth.top.latch_count` (đếm cell tên chứa `dlx` hoặc `dlatch`), `synth.nand2_area_um2` (grep `cell ("sky130_fd_sc_hd__nand2_1")` rồi lấy `area` từ liberty), `synth.top.nand2_eq`, `sta.synth.wns_setup_ns`, `sta.synth.wns_hold_ns`, `sta.synth.crit_path`, `sta.synth.crit_arrival_ns`, `sta.synth.worst_path`.
   - `crit_path` và `crit_arrival_ns` lấy từ report **reg→reg**. `wns_*` và `worst_path` lấy từ report toàn thiết kế.
   - **Yosys 0.66 in `stat` theo định dạng mới.** Khi giữ phân cấp, có bảng riêng cho từng module và một khối tổng cho top ("design hierarchy" / "Count including submodules"). Diện tích và số cell của top phải là **tổng kể cả submodule** (fa ×6, mux2 ×3, …), không lấy riêng dòng của module top. Parser phải tự kiểm tra: tổng diện tích = Σ (số instance × diện tích từng module), lệch thì `sys.exit(1)`.
   - **Quy ước WNS:** OpenSTA in WNS = 0 khi không có slack âm. Hãy ghi **worst slack** (giá trị dương) vào các key `wns_*`, và ghi chú điều này trong DEVIATIONS.md (D-n "WNS hiểu là worst slack").
-- [ ] **Step 5:** `make synth sta`.
-- [ ] **Step 6:** Commit `feat(syn): yosys sky130 synthesis, SDC, OpenSTA signoff at 10ns`.
+- [x] **Step 5:** `make synth sta`.
+- [x] **Step 6:** Commit `feat(syn): yosys sky130 synthesis, SDC, OpenSTA signoff at 10ns`.
 
 **Reviewer gate:**
 ```bash
