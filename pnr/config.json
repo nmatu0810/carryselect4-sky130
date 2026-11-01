@@ -1,0 +1,19 @@
+{
+  "DESIGN_NAME": "carryselect4_top",
+  "VERILOG_FILES": [
+    "dir::../rtl/fa.sv",
+    "dir::../rtl/rca2.sv",
+    "dir::../rtl/mux2.sv",
+    "dir::../rtl/csla4.sv",
+    "dir::../rtl/csla4_ctrl.sv",
+    "dir::../rtl/carryselect4_top.sv"
+  ],
+  "CLOCK_PORT": "clk",
+  "CLOCK_PERIOD": 10,
+  "FP_SIZING": "relative",
+  "FP_CORE_UTIL": 55,
+  "FP_ASPECT_RATIO": 1,
+  "SYNTH_HIERARCHY_MODE": "keep",
+  "PNR_SDC_FILE": "dir::../syn/constraints.sdc",
+  "SIGNOFF_SDC_FILE": "dir::../syn/constraints.sdc"
+}

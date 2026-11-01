@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: all tools golden lint-comb sim-unit lint synth-check sim sim-all wave synth sta compare help
+.PHONY: pnr pnr5 all tools golden lint-comb sim-unit lint synth-check sim sim-all wave synth sta compare help
 
 all: tools
 
@@ -126,3 +126,9 @@ help:
 	@echo "  sim         - Run simulation for TEST=<name> (default: case1)"
 	@echo "  sim-all     - Run all simulation testcases"
 	@echo "  wave        - Open waveform in GTKWave for TEST=<name>"
+
+pnr:
+	@scripts/run_pnr.sh 10 run_10ns
+
+pnr5:
+	@scripts/run_pnr.sh 5 run_5ns
