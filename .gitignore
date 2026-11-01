@@ -12,3 +12,7 @@ abc.history
 pnr/config_*ns.json
 analysis/le/out/
 results/logs/pnr_*.log
+paper/main.*
+!paper/main.tex
+paper/build.log
+paper/missfont.log

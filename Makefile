@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: figures pnr pnr5 tau le-test fa-layout fa-drc fa-lvs fa-pex all tools golden lint-comb sim-unit lint synth-check sim sim-all wave synth sta compare help
+.PHONY: paper figures pnr pnr5 tau le-test fa-layout fa-drc fa-lvs fa-pex all tools golden lint-comb sim-unit lint synth-check sim sim-all wave synth sta compare help
 
 all: tools
 
@@ -166,3 +166,10 @@ figures:
 	source scripts/env.sh && ngspice -b custom/fa/sim/path_post.sp > custom/fa/out/path_post.log 2>&1 && \
 	for s in block_diagram csla_struct fsm waves area_delay le_vs_spice fa_transient; do \
 		$(PY) scripts/figs/make_$$s.py || exit 1; done
+
+# IEEE paper; tectonic if installed, else a TeX Live with IEEEtran (see DEVIATIONS D5)
+paper:
+	@source scripts/env.sh && python3 scripts/metrics_to_tex.py > paper/metrics.tex && cd paper && \
+	if command -v tectonic > /dev/null; then tectonic -c minimal main.tex; \
+	else latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex > build.log 2>&1 || { tail -n 30 build.log; exit 1; }; fi && \
+	cp main.pdf CarrySelect4_IEEE.pdf && echo "paper/CarrySelect4_IEEE.pdf"

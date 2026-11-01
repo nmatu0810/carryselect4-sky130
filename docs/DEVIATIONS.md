@@ -34,3 +34,9 @@ Format:
 - Thực tế: môi trường chạy Task 8 (cloud container) không tải được image `ghcr.io/librelane/librelane` và bản phát hành ciel (bị proxy chặn). Flow chạy với `--manual-pdk`, tool lấy từ nixpkgs-unstable (Yosys 0.70, OpenROAD 26Q3/OpenSTA, Magic 8.3.685, Netgen 1.5.325, KLayout 0.30.12), PDK `open_pdks.sky130a 1.0.471` (conda litex-hub). `scripts/run_pnr.sh` chọn `--dockerized` nếu `OL_IMAGE` có giá trị, nếu không thì chạy native (thêm venv vào `PATH`/`PYTHONPATH` cho các tool có Python nhúng).
 - Lý do: không có cách nào khác để chạy flow trong môi trường này; LibreLane 3.0.16 vẫn đọc được cấu hình PDK cũ qua `libs.tech/openlane`.
 - Ảnh hưởng: các số `pnr.*` có thể lệch nhẹ so với chạy bằng image chính thức. Trên máy có image, `make pnr` vẫn chạy chế độ dockerized như spec; nếu chạy lại thì thay `pnr/final/` và cập nhật lại số liệu Task 9.
+
+## D5: Paper dựng bằng TeX Live (pdflatex + latexmk) thay cho tectonic
+- Spec: `make paper` = `tectonic paper/main.tex`.
+- Thực tế: target `paper` dùng `tectonic` nếu có trên máy; nếu không thì dùng `latexmk -pdf` của TeX Live (gói `ieeetran`, `cite`, `booktabs`, font `times`/`courier`/`helvetic`). Bản PDF trong repo được dựng bằng TeX Live 2025 từ nixpkgs.
+- Lý do: tectonic tải bundle TeX từ `relay.fullyjustified.net` lúc chạy, host này bị chặn trong môi trường thực hiện Task 15.
+- Ảnh hưởng: không đổi nội dung; cùng lớp `IEEEtran` (conference). Trên máy có tectonic, `make paper` vẫn dùng tectonic như spec.
