@@ -1,0 +1,3 @@
+Nhóm em xin chân thành cảm ơn thầy TS. Dương Ngọc Pháp đã hướng dẫn nhóm trong suốt quá trình thực hiện đồ án học phần Thiết kế VLSI, từ lúc chốt đề cương, chọn kiến trúc carry-select cho tới khi hoàn thành layout và báo cáo. Những góp ý của thầy giúp nhóm giới hạn phạm vi cho vừa thời gian và tập trung vào các bước cốt lõi của luồng thiết kế: kiểm chứng, tổng hợp, thiết kế vật lý và phân tích Logical Effort.
+
+Nhóm em cũng cảm ơn các thầy cô Khoa Kỹ thuật Máy tính và Điện tử đã trang bị kiến thức nền về mạch số, vi mạch và thiết kế hệ thống, và cảm ơn gia đình, bạn bè đã động viên nhóm trong thời gian thực hiện đề tài.
