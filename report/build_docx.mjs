@@ -4,19 +4,25 @@
 //   # / ## / ###            -> Heading 1/2/3, numbered "Chương N." / "N.M" / "N.M.K"
 //   plain paragraphs        (consecutive lines are joined)
 //   "- item"                -> bullet list;  "1. item" -> numbered list (restarts per list)
-//   pipe table              -> bordered table; caption from a "Bảng: <caption>" line just above
-//   ![Hình: caption](path)  -> image 15 cm wide, numbered caption "Hình n." below
+//   pipe table              -> bordered table; caption from a "Bảng: <caption>" line just above;
+//                              column widths follow the content, rows never split across pages,
+//                              tables of up to 12 rows are kept on one page
+//   ![Hình: caption](path)  -> image at most 15 cm wide and 11 cm tall, numbered caption "Hình n." below
 //   **bold**, *italic*, `code` (Consolas)
+//   inside *italic*: x_sub -> subscript, x^(sup) -> superscript; a paragraph that is only one
+//                              *italic* span is a display formula (centred)
 //   {{key}}                 -> value from results/metrics.json; unknown key => exit code 1
-// Cover page from report/vi/00_meta.json, then a table of contents field, then the chapters.
-// Layout: A4, margins T/B/L/R = 2/2/3/2 cm, Times New Roman 13 pt, line spacing 1.3, page number footer.
+// Sections: cover (page border, no page number) | table of contents (i, ii, ...) | chapters (1, 2, ...).
+// Layout: A4, margins T/B/L/R = 2/2/3/2 cm, Times New Roman 13 pt, line spacing 1.3, body paragraphs
+// justified with a 1 cm first-line indent, chapter titles centred in capitals.
 import fs from "node:fs";
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  AlignmentType, BorderStyle, Document, Footer, HeadingLevel, ImageRun, LevelFormat, LineRuleType, Packer, PageBreak,
-  PageNumber, Paragraph, ShadingType, Table, TableCell, TableOfContents, TableRow, TextRun, WidthType,
+  AlignmentType, BorderStyle, Document, Footer, HeadingLevel, ImageRun, LevelFormat, LineRuleType, NumberFormat,
+  Packer, PageBorderDisplay, PageBorderOffsetFrom, PageNumber, Paragraph, ShadingType, Table, TableCell,
+  TableOfContents, TableRow, TextRun, VerticalAlign, WidthType,
 } from "docx";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -27,7 +33,10 @@ const OUT = path.join(HERE, "baocao_CarrySelect4.docx");
 const FONT = "Times New Roman";
 const CM = 567; // DXA per cm
 const TEXT_WIDTH = 11906 - 3 * CM - 2 * CM; // A4 width minus left/right margins
-const IMG_WIDTH_PX = Math.round((15 / 2.54) * 96); // 15 cm at 96 dpi
+const PX_PER_CM = 96 / 2.54;
+const IMG_MAX_W_PX = Math.round(15 * PX_PER_CM); // images at most 15 cm wide ...
+const IMG_MAX_H_PX = Math.round(11 * PX_PER_CM); // ... and 11 cm tall
+const INDENT = CM; // first-line indent of body paragraphs
 
 // ---------- metrics / placeholders ----------
 const metrics = JSON.parse(fs.readFileSync(path.join(ROOT, "results", "metrics.json"), "utf8"));
@@ -57,6 +66,22 @@ function substitute(text) {
 }
 
 // ---------- inline formatting ----------
+// Subscript after "_": letters/digits, joined by "-" or "," (t_clk-q, C_in,i+1), and continuing over
+// further plain words until an operator, bracket or the end (C_trên đường + ...). Superscript: ^(...) or ^word.
+const MATH = /_([\p{L}\p{N}]+(?:[-,][\p{L}\p{N}+]+)*(?: [\p{L}]+(?=$|[ )]))*)|\^\(([^)]*)\)|\^([\p{L}\p{N}]+)/gu;
+function mathRuns(text, base) {
+  const out = [];
+  let last = 0;
+  for (const m of text.matchAll(MATH)) {
+    if (m.index > last) out.push(new TextRun({ ...base, text: text.slice(last, m.index) }));
+    if (m[1] !== undefined) out.push(new TextRun({ ...base, text: m[1], subScript: true }));
+    else out.push(new TextRun({ ...base, text: m[2] ?? m[3], superScript: true }));
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) out.push(new TextRun({ ...base, text: text.slice(last) }));
+  return out;
+}
+
 function runs(text, baseIn = {}) {
   const base = { font: FONT, ...baseIn };
   const out = [];
@@ -67,7 +92,7 @@ function runs(text, baseIn = {}) {
     const tok = m[0];
     if (tok.startsWith("**")) out.push(new TextRun({ ...base, text: tok.slice(2, -2), bold: true }));
     else if (tok.startsWith("`")) out.push(new TextRun({ ...base, text: tok.slice(1, -1), font: "Consolas", size: 22 }));
-    else out.push(new TextRun({ ...base, text: tok.slice(1, -1), italics: true }));
+    else out.push(...mathRuns(tok.slice(1, -1), { ...base, italics: true }));
     last = m.index + tok.length;
   }
   if (last < text.length) out.push(new TextRun({ text: text.slice(last), ...base }));
@@ -90,14 +115,20 @@ function heading(level, title) {
   counters.h[level - 1] += 1;
   for (let i = level; i < 3; i++) counters.h[i] = 0;
   const [a, b, c] = counters.h;
-  const num = level === 1 ? `Chương ${a}.` : level === 2 ? `${a}.${b}` : `${a}.${b}.${c}`;
+  const text = level === 1 ? `CHƯƠNG ${a}. ${title.toLocaleUpperCase("vi")}`
+    : level === 2 ? `${a}.${b} ${title}` : `${a}.${b}.${c} ${title}`;
   const hl = [HeadingLevel.HEADING_1, HeadingLevel.HEADING_2, HeadingLevel.HEADING_3][level - 1];
-  if (level === 1 && counters.h[0] > 1) body.push(new Paragraph({ children: [new PageBreak()] }));
-  body.push(new Paragraph({ heading: hl, children: [new TextRun({ text: `${num} ${title}`, font: FONT })] }));
+  body.push(new Paragraph({ heading: hl, pageBreakBefore: level === 1 && counters.h[0] > 1,
+    children: [new TextRun({ text, font: FONT })] }));
 }
 
 function paragraph(text) {
-  body.push(new Paragraph({ alignment: AlignmentType.JUSTIFIED, children: runs(text) }));
+  if (/^\*[^*]+\*$/.test(text)) { // display formula
+    body.push(new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 60, after: 180 },
+      children: runs(text) }));
+    return;
+  }
+  body.push(new Paragraph({ alignment: AlignmentType.JUSTIFIED, indent: { firstLine: INDENT }, children: runs(text) }));
 }
 
 function list(items, ordered) {
@@ -110,9 +141,50 @@ function list(items, ordered) {
   for (const it of items) body.push(new Paragraph({ numbering: { reference: ref, level: 0 }, children: runs(it) }));
 }
 
-function caption(text) {
-  return new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 60, after: 200 },
+function caption(text, keepNext = false) {
+  return new Paragraph({ alignment: AlignmentType.CENTER, keepNext, keepLines: true,
+    spacing: { before: keepNext ? 200 : 60, after: keepNext ? 80 : 240 },
     children: runs(text, { size: 24, italics: false }) });
+}
+
+/** visible length of a markdown cell (markup removed; code counts wider) */
+function cellLen(c) {
+  const code = (c.match(/`[^`]+`/g) || []).join("").length;
+  return c.replace(/\*\*|`|\*/g, "").length + 0.25 * code;
+}
+
+/** width (DXA) the longest unbreakable word of a cell needs, so no word is split mid-way */
+function wordWidth(c, header) {
+  let best = 0;
+  for (const m of c.matchAll(/`([^`]+)`|([^\s`]+)/g)) {
+    const isCode = m[1] !== undefined;
+    for (const word of (m[1] ?? m[2]).replace(/\*\*|\*/g, "").split(/\s+/)) {
+      const cm = word.length * (isCode ? 0.22 : 0.2) * (header ? 1.08 : 1);
+      best = Math.max(best, cm);
+    }
+  }
+  return Math.round((best + 0.4) * CM); // + cell margins
+}
+
+/** column widths in DXA: every column fits its longest word; the rest is shared by content length */
+function columnWidths(cells) {
+  const ncol = cells[0].length;
+  const minW = Array.from({ length: ncol }, (_, j) =>
+    Math.max(Math.round(1.4 * CM), ...cells.map((r, i) => wordWidth(r[j] ?? "", i === 0))));
+  const want = Array.from({ length: ncol }, (_, j) =>
+    Math.min(Math.max(...cells.map((r) => cellLen(r[j] ?? ""))), 42) + 3);
+  const fixed = new Set();
+  let w = [];
+  for (let iter = 0; iter < ncol; iter++) {
+    const free = TEXT_WIDTH - [...fixed].reduce((a, j) => a + minW[j], 0);
+    const share = want.reduce((a, x, j) => a + (fixed.has(j) ? 0 : x), 0);
+    w = want.map((x, j) => (fixed.has(j) ? minW[j] : Math.floor((free * x) / share)));
+    const low = w.findIndex((x, j) => !fixed.has(j) && x < minW[j]);
+    if (low < 0) break;
+    fixed.add(low);
+  }
+  w[ncol - 1] += TEXT_WIDTH - w.reduce((a, b) => a + b, 0);
+  return w;
 }
 
 function table(rows, cap) {
@@ -120,37 +192,42 @@ function table(rows, cap) {
   const cells = rows.map((r) => r.replace(/^\s*\|/, "").replace(/\|\s*$/, "").split(/(?<!\\)\|/)
     .map((c) => c.trim().replace(/\\\|/g, "|")));
   const ncol = cells[0].length;
-  const colW = Array(ncol).fill(Math.floor(TEXT_WIDTH / ncol));
-  colW[ncol - 1] += TEXT_WIDTH - colW.reduce((a, b) => a + b, 0);
+  const colW = columnWidths(cells);
+  const keepTogether = cells.length <= 12; // short tables move to the next page as a whole
   const border = { style: BorderStyle.SINGLE, size: 4, color: "000000" };
   const borders = { top: border, bottom: border, left: border, right: border };
   counters.tab += 1;
-  body.push(caption(`**Bảng ${counters.tab}.** ${cap ?? ""}`.trim()));
+  body.push(caption(`**Bảng ${counters.tab}.** ${cap ?? ""}`.trim(), true));
   body.push(new Table({
     width: { size: TEXT_WIDTH, type: WidthType.DXA },
     columnWidths: colW,
     rows: cells.map((r, i) => new TableRow({
       tableHeader: i === 0,
+      cantSplit: true,
       children: Array.from({ length: ncol }, (_, j) => new TableCell({
         borders,
         width: { size: colW[j], type: WidthType.DXA },
+        verticalAlign: VerticalAlign.CENTER,
         shading: i === 0 ? { fill: "E7E6E6", type: ShadingType.CLEAR, color: "auto" } : undefined,
-        margins: { top: 40, bottom: 40, left: 80, right: 80 },
-        children: [new Paragraph({ spacing: { line: 276, lineRule: LineRuleType.AUTO }, children: runs(r[j] ?? "", { size: 24, bold: i === 0 }) })],
+        margins: { top: 50, bottom: 50, left: 90, right: 90 },
+        children: [new Paragraph({ alignment: i === 0 ? AlignmentType.CENTER : AlignmentType.LEFT,
+          keepNext: i === 0 || (keepTogether && i < cells.length - 1), spacing: { before: 0, after: 0, line: 264, lineRule: LineRuleType.AUTO },
+          children: runs(r[j] ?? "", { size: 24, bold: i === 0 }) })],
       })),
     })),
   }));
-  body.push(new Paragraph({ spacing: { after: 120 }, children: [] }));
+  body.push(new Paragraph({ spacing: { before: 0, after: 120, line: 240, lineRule: LineRuleType.AUTO }, children: [] }));
 }
 
 function image(cap, rel, mdDir) {
   const file = path.resolve(mdDir, rel);
   if (!fs.existsSync(file)) { console.error(`missing image ${file}`); process.exit(1); }
   const { w, h, data } = pngSize(file);
+  const scale = Math.min(IMG_MAX_W_PX / w, IMG_MAX_H_PX / h);
   counters.fig += 1;
   body.push(new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true,
-    spacing: { line: 240, lineRule: LineRuleType.AUTO, before: 120, after: 0 }, children: [new ImageRun({
-    type: "png", data, transformation: { width: IMG_WIDTH_PX, height: Math.round((IMG_WIDTH_PX * h) / w) },
+    spacing: { line: 240, lineRule: LineRuleType.AUTO, before: 160, after: 0 }, children: [new ImageRun({
+    type: "png", data, transformation: { width: Math.round(w * scale), height: Math.round(h * scale) },
   })] }));
   body.push(caption(`**Hình ${counters.fig}.** ${cap}`));
 }
@@ -218,8 +295,7 @@ function cover(meta) {
   meta["sinh_vien"].forEach((sv, k) => out.push(left(k === 0 ? "Sinh viên" : "", sv)));
   out.push(left("GVHD", meta["GVHD"] || ""));
   out.push(new Paragraph({ spacing: { before: 1600 }, children: [] }));
-  out.push(c(meta["noi_nam"], { italics: true }));
-  out.push(new Paragraph({ children: [new PageBreak()] }));
+  out.push(c(meta["noi_nam"], { italics: true, bold: true }));
   return out;
 }
 
@@ -233,12 +309,10 @@ if (missing.size) {
   process.exit(1);
 }
 
-const front = [
-  ...cover(meta),
-  new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 240 },
+const toc = [
+  new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 360 },
     children: [new TextRun({ text: "MỤC LỤC", bold: true, size: 32, font: FONT })] }),
   new TableOfContents("Mục lục", { hyperlink: true, headingStyleRange: "1-3" }),
-  new Paragraph({ children: [new PageBreak()] }),
 ];
 
 const numbering = {
@@ -250,12 +324,17 @@ const numbering = {
   ],
 };
 
-const hstyle = (id, name, size, extra = {}) => ({
+const hstyle = (id, name, size, extra = {}, para = {}) => ({
   id, name, basedOn: "Normal", next: "Normal", quickFormat: true,
   run: { font: FONT, size, bold: true, color: "000000", ...extra },
   paragraph: { spacing: { before: 240, after: 120, line: 312, lineRule: LineRuleType.AUTO }, keepNext: true,
-    outlineLevel: Number(id.slice(-1)) - 1 },
+    keepLines: true, outlineLevel: Number(id.slice(-1)) - 1, ...para },
 });
+
+const pageSetup = { margin: { top: 2 * CM, bottom: 2 * CM, left: 3 * CM, right: 2 * CM } };
+const footer = () => new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER,
+  children: [new TextRun({ children: [PageNumber.CURRENT], size: 24, font: FONT })] })] });
+const coverBorder = { style: BorderStyle.THICK_THIN_MEDIUM_GAP, size: 24, color: "000000", space: 24 };
 
 const doc = new Document({
   creator: meta["nhom"],
@@ -264,18 +343,31 @@ const doc = new Document({
   styles: {
     default: { document: { run: { font: FONT, size: 26 }, paragraph: { spacing: { line: 312, lineRule: LineRuleType.AUTO, after: 120 } } } },
     paragraphStyles: [
-      hstyle("Heading1", "Heading 1", 32),
-      hstyle("Heading2", "Heading 2", 28),
+      hstyle("Heading1", "Heading 1", 32, {}, { alignment: AlignmentType.CENTER, spacing: { before: 0, after: 360, line: 312, lineRule: LineRuleType.AUTO } }),
+      hstyle("Heading2", "Heading 2", 28, {}, { spacing: { before: 280, after: 120, line: 312, lineRule: LineRuleType.AUTO } }),
       hstyle("Heading3", "Heading 3", 26, { italics: true }),
     ],
   },
   numbering,
-  sections: [{
-    properties: { page: { margin: { top: 2 * CM, bottom: 2 * CM, left: 3 * CM, right: 2 * CM } } },
-    footers: { default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER,
-      children: [new TextRun({ children: [PageNumber.CURRENT], size: 24, font: FONT })] })] }) },
-    children: [...front, ...body],
-  }],
+  sections: [
+    { // cover: framed, no page number
+      properties: { page: { ...pageSetup, borders: {
+        pageBorders: { display: PageBorderDisplay.ALL_PAGES, offsetFrom: PageBorderOffsetFrom.TEXT },
+        pageBorderTop: coverBorder, pageBorderBottom: coverBorder, pageBorderLeft: coverBorder, pageBorderRight: coverBorder,
+      } } },
+      children: cover(meta),
+    },
+    { // table of contents: i, ii, ...
+      properties: { page: { ...pageSetup, pageNumbers: { start: 1, formatType: NumberFormat.LOWER_ROMAN } } },
+      footers: { default: footer() },
+      children: toc,
+    },
+    { // chapters: 1, 2, ...
+      properties: { page: { ...pageSetup, pageNumbers: { start: 1, formatType: NumberFormat.DECIMAL } } },
+      footers: { default: footer() },
+      children: body,
+    },
+  ],
 });
 
 fs.writeFileSync(OUT, await Packer.toBuffer(doc));
