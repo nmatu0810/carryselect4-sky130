@@ -29,7 +29,7 @@ Mọi con số đo được đều ghi vào một file duy nhất `results/metri
 4. **Khi lệch spec:** nếu buộc phải làm khác spec hoặc khác Design Decisions (ví dụ tool lỗi, phải đổi tham số), ghi một mục vào `docs/DEVIATIONS.md` theo mẫu `## D<n>: <tiêu đề>` / `Spec:` / `Thực tế:` / `Lý do:` / `Ảnh hưởng:`. Không im lặng đổi.
 5. **Kết thúc task:**
    - Chạy đủ các lệnh trong phần **Reviewer gate** và dán output (phần cuối) vào báo cáo task.
-   - Commit theo đúng message ghi trong task. Footer commit: `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
+   - Commit theo đúng message ghi trong task.
 6. **Shell là zsh:** trong lệnh shell, luôn đặt toán tử trong dấu nháy đơn, ví dụ `metrics.py check k '==' 0`, `'>='`, `'<'`. Nếu để trần, zsh sẽ hiểu `==` và `<` theo cú pháp riêng của nó và báo lỗi.
 7. **Khi bị chặn:** nếu một gate không qua sau 3 lần sửa, dừng lại và báo cáo trạng thái BLOCKED, kèm lỗi cụ thể. Không nới gate.
 

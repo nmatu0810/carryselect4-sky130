@@ -11,6 +11,7 @@
 // Cover page from report/vi/00_meta.json, then a table of contents field, then the chapters.
 // Layout: A4, margins T/B/L/R = 2/2/3/2 cm, Times New Roman 13 pt, line spacing 1.3, page number footer.
 import fs from "node:fs";
+import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -30,6 +31,8 @@ const IMG_WIDTH_PX = Math.round((15 / 2.54) * 96); // 15 cm at 96 dpi
 
 // ---------- metrics / placeholders ----------
 const metrics = JSON.parse(fs.readFileSync(path.join(ROOT, "results", "metrics.json"), "utf8"));
+// wording that depends on the 5 ns result comes from scripts/pnr5_text.py (PASS/FAIL aware)
+Object.assign(metrics, JSON.parse(execFileSync("python3", [path.join(ROOT, "scripts", "pnr5_text.py")], { encoding: "utf8" })));
 
 function sig3(v) {
   if (v === 0 || !Number.isFinite(v)) return String(v);

@@ -3,6 +3,7 @@
 // the build. Figures come from docs/figures/*.png. Theme colors are written into the package
 // after pptxgenjs saves it (pptxgenjs itself always writes the stock Office palette).
 import fs from "node:fs";
+import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import JSZip from "jszip";
@@ -15,6 +16,8 @@ const OUT = path.join(HERE, "CarrySelect4_BaoVe.pptx");
 
 // ---------- metrics ----------
 const METRICS = JSON.parse(fs.readFileSync(path.join(ROOT, "results", "metrics.json"), "utf8"));
+// wording that depends on the 5 ns result comes from scripts/pnr5_text.py (PASS/FAIL aware)
+Object.assign(METRICS, JSON.parse(execFileSync("python3", [path.join(ROOT, "scripts", "pnr5_text.py")], { encoding: "utf8" })));
 function fmt(v) {
   if (typeof v === "boolean") return v ? "true" : "false";
   if (typeof v !== "number") return String(v);
@@ -260,7 +263,7 @@ steps.forEach(([h, d], i) => {
 bullets(s, [
   "LibreLane 3.0.16, SYNTH_HIERARCHY_MODE = keep, SDC chung với tổng hợp",
   "Lệnh: make pnr (10 ns) và make pnr5 (5 ns)",
-  "Trong môi trường thực hiện: tool native + open_pdks 1.0.471 (D4)",
+  `Chạy trong Docker (image LibreLane 3.0.16), PDK sky130A ${m("env.pdk_hash").slice(0, 8)}`,
 ], 0.5, 3.35, 9, 1.6, 14);
 
 // 11. layout & sign-off
@@ -275,7 +278,7 @@ table(s, [
   ["fmax ước lượng, tt (MHz)", m("pnr.fmax_mhz")],
   ["DRC Magic / KLayout / LVS", `${m("pnr.drc_magic")} / ${m("pnr.drc_klayout")} / ${m("pnr.lvs_errors")}`],
   ["Antenna, công suất (mW)", `${m("pnr.antenna_violations")}, ${m("pnr.power_total_mw")}`],
-  [`5 ns: ${m("pnr5.status")}`, `ss setup ${m("pnr5.wns_setup_worst_corner_ns")} ns`],
+  [`5 ns: ${m("pnr5.status")}`, m("pnr5.slide_value")],
 ], 4.3, 1.1, 5.2, [3.1, 2.1], 13);
 
 // 12. FA 28T & Euler
@@ -338,7 +341,7 @@ table(s, [
   ["512/512 khớp tham chiếu", `${m("sim.exhaustive.checked")} tổ hợp, ${m("sim.exhaustive.errors")} lỗi`, "Đạt"],
   ["≤ 500 NAND2 tđ", `${m("synth.top.nand2_eq")}`, "Đạt"],
   ["10 ns, mọi corner", `setup ${m("pnr.wns_setup_worst_corner_ns")} ns, hold ${m("pnr.wns_hold_worst_corner_ns")} ns`, "Đạt"],
-  ["5 ns (mở rộng)", `ss setup ${m("pnr5.wns_setup_worst_corner_ns")} ns`, "Chưa đạt"],
+  ["5 ns (mở rộng)", m("pnr5.slide_value"), m("pnr5.grade_vi")],
   ["DRC = 0, LVS khớp", `${m("pnr.drc_magic")} / ${m("pnr.drc_klayout")} / ${m("pnr.lvs_errors")}`, "Đạt"],
   ["FA 28T DRC/LVS", `DRC ${m("fa.drc_errors")}, LVS ${m("fa.lvs_match")}`, "Đạt"],
   ["LE so với SPICE", `${m("le.D_est_ps")} ps nằm giữa ${m("spice.D_pre_ps")} và ${m("spice.D_post_ps")} ps`, "Đạt"],

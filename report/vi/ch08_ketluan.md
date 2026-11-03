@@ -9,7 +9,7 @@ Bảng: Mục tiêu trong đề cương và kết quả đạt được
 | Độ trễ 2 chu kỳ, 1 kết quả / 2 chu kỳ | {{sim.latency_cycles}} chu kỳ; {{sim.cycles_per_result}} chu kỳ / kết quả | Đạt |
 | Diện tích ≤ 500 NAND2 tương đương | {{synth.top.nand2_eq}} NAND2 tđ | Đạt |
 | Setup và hold ≥ 0 sau route ở 10 ns | worst setup {{pnr.wns_setup_worst_corner_ns}} ns, worst hold {{pnr.wns_hold_worst_corner_ns}} ns, 9 corner | Đạt |
-| Mục tiêu mở rộng 5 ns | {{pnr5.status}}: setup slack ở corner ss = {{pnr5.wns_setup_worst_corner_ns}} ns | Chưa đạt (chỉ đạt ở tt/ff) |
+| Mục tiêu mở rộng 5 ns | {{pnr5.status}}: {{pnr5.summary_vi}} | {{pnr5.grade_vi}} |
 | DRC = 0, LVS khớp, có GDSII | DRC {{pnr.drc_magic}} / {{pnr.drc_klayout}}, LVS {{pnr.lvs_errors}} lỗi, có GDS | Đạt |
 | Floorplan util 55%, tỷ lệ 1.0 | đặt đúng khi floorplan; util cuối {{pnr.core_util_pct}}% do buffer sửa timing | Đạt (có giải thích) |
 | So sánh Area–Delay với RCA-4 | CSLA nhanh hơn, ADP kém hơn khi giữ phân cấp | Đạt |
@@ -19,8 +19,7 @@ Bảng: Mục tiêu trong đề cương và kết quả đạt được
 ## Hạn chế
 
 - Ở độ rộng 4 bit, CSLA chỉ nhanh hơn RCA khoảng một phần tư nhưng tốn diện tích gần gấp đôi; lợi ích của carry-select chưa thể hiện rõ ở quy mô này.
-- Thiết kế chưa đóng timing ở 5 ns tại corner chậm ss_100C_1v60.
-- Luồng vật lý trong báo cáo chạy bằng tool native và PDK `open_pdks` 1.0.471 thay cho image Docker (D4); số liệu có thể lệch nhẹ so với image chính thức.
+- {{pnr5.limit_vi}}
 - FA full-custom chưa được tối ưu diện tích: cell rộng vì có 9 track met1, làm tăng điện dung dây và độ trễ sau layout.
 - Không có backpressure ở đầu ra (D-3), nên lõi chỉ dùng được khi phía nhận luôn sẵn sàng.
 

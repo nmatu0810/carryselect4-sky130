@@ -1,0 +1,8 @@
+{
+  "mode": "dockerized",
+  "image": "ghcr.io/librelane/librelane:3.0.16",
+  "flow": "LibreLane v3.0.16",
+  "config": "pnr/config.json",
+  "clock_period_ns": 10,
+  "synth_hierarchy_mode": "keep"
+}

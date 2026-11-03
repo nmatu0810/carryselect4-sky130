@@ -163,7 +163,7 @@ PY ?= .venv/bin/python
 # all report/paper figures (needs matplotlib + vcdvcd in .venv)
 figures:
 	@$(MAKE) -s sim TEST=case2 > /dev/null && $(MAKE) -s sim TEST=case4 > /dev/null && \
-	source scripts/env.sh && ngspice -b custom/fa/sim/path_post.sp > custom/fa/out/path_post.log 2>&1 && \
+	source scripts/env.sh && mkdir -p custom/fa/out && ngspice -b custom/fa/sim/path_post.sp > custom/fa/out/path_post.log 2>&1 && \
 	for s in block_diagram csla_struct fsm waves area_delay le_vs_spice fa_transient; do \
 		$(PY) scripts/figs/make_$$s.py || exit 1; done
 

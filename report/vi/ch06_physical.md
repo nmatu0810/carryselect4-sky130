@@ -14,7 +14,7 @@ Các bước chính của luồng:
 6. **Routing:** global route, sửa antenna, detailed route, chèn fill/decap.
 7. **Sign-off:** trích RC, STA ở 9 corner, DRC Magic và KLayout, LVS Netgen, xuất GDSII.
 
-Theo D4, trong môi trường thực hiện Task 8 flow chạy bằng tool native (nixpkgs) và PDK `open_pdks` 1.0.471 thay cho image Docker, do không tải được image. Trên máy có image, `make pnr` vẫn chạy chế độ `--dockerized`.
+Flow chạy bằng `make pnr` ở chế độ `--dockerized` với image `ghcr.io/librelane/librelane:3.0.16` và PDK sky130A do ciel quản lý (hash `{{env.pdk_hash}}`). Mọi số `pnr.*` và `pnr5.*` trong tài liệu được đo bằng chế độ này (xem D4).
 
 ## Kết quả sign-off
 
@@ -43,7 +43,7 @@ Một số điểm cần giải thích:
 
 ## Chạy mở rộng ở 5 ns
 
-Lệnh `make pnr5` chạy cùng cấu hình với chu kỳ 5 ns (SDC sinh lại vào `syn/out/constraints_5ns.sdc`). Kết quả: **{{pnr5.status}}**. Setup slack ở corner tt là {{pnr5.wns_setup_ns}} ns, nhưng ở corner chậm `ss_100C_1v60` setup slack âm ({{pnr5.wns_setup_worst_corner_ns}} ns); hold slack xấu nhất vẫn dương ({{pnr5.wns_hold_worst_corner_ns}} ns), DRC/LVS vẫn sạch. Như vậy thiết kế chạy được 200 MHz ở điều kiện điển hình nhưng chưa đóng được timing ở mọi corner.
+{{pnr5.text_vi}}
 
 ## Sai khác so với đề cương
 
@@ -52,5 +52,5 @@ Mọi sai khác đều được ghi trong `docs/DEVIATIONS.md`:
 - **D1 – "WNS" là worst slack:** các key `*.wns_*` lưu worst slack (dương khi đạt) thay cho WNS của OpenSTA, để biết còn dư bao nhiêu.
 - **D2 – Đặt tên cell theo wire khi tổng hợp:** thêm `read_liberty -lib` và `rename -wire` để report STA đọc được; logic và diện tích không đổi.
 - **D3 – Loại cell `lpflow_*`:** tránh dùng cell cách ly làm logic thường, giống cách LibreLane làm; số cell và diện tích không đổi.
-- **D4 – LibreLane chạy native:** do không tải được image Docker và bản phát hành ciel; dùng tool từ nixpkgs và PDK `open_pdks` 1.0.471. Số liệu `pnr.*` có thể lệch nhẹ so với image chính thức.
+- **D4 – Số liệu PnR cuối cùng đo bằng image chính thức:** lần chạy đầu trong môi trường không có Docker dùng tool native và PDK `open_pdks` 1.0.471; các số đó chỉ còn là lịch sử. Số trong tài liệu là số chạy lại bằng image LibreLane 3.0.16 và PDK ciel.
 - **D5 – Paper dựng bằng TeX Live:** tectonic không tải được bundle; nội dung và lớp IEEEtran không đổi.

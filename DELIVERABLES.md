@@ -27,6 +27,6 @@ sản phẩm mà plan rút ra từ file đó.
 ## GDSII
 
 - File: `pnr/final/carryselect4_top.gds`
-- sha256: `8bac1eeeec848bfc267a56ba33648defed09c47926ea3519f53379e6b1dd428b`
+- sha256: `0cdc048a3d55da98085b52a22105ce61d84e00a3c5bcb42d9ef0db074f034a48`
 
 `make verify-all` không chạy lại PnR; nó so sha256 của GDS với giá trị trên.

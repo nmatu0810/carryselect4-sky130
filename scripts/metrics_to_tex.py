@@ -49,7 +49,13 @@ def to_tex(metrics: dict) -> str:
 
 def main() -> None:
     path = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "results" / "metrics.json"
-    sys.stdout.write(to_tex(json.loads(path.read_text())))
+    metrics = json.loads(path.read_text())
+    if "pnr5.status" in metrics:
+        # wording that depends on the 5 ns result (scripts/pnr5_text.py), not on fixed text
+        sys.path.insert(0, str(ROOT / "scripts"))
+        from pnr5_text import describe
+        metrics.update(describe(metrics))
+    sys.stdout.write(to_tex(metrics))
 
 
 if __name__ == "__main__":

@@ -18,7 +18,8 @@ qua ciel, và `.venv` có `librelane`, `matplotlib`, `vcdvcd`, `pytest`. Mọi l
 `scripts/env.sh` (đặt `PDK_ROOT`, `LIB_TT`, `FLOW_CLI`, `OL_IMAGE`).
 
 Không có image Docker? `scripts/run_pnr.sh` và `scripts/olsh` tự chạy native nếu các tool
-(OpenROAD, `sta`, Magic, Netgen, KLayout) có trên `PATH` (xem D4).
+(OpenROAD, `sta`, Magic, Netgen, KLayout) có trên `PATH` (xem D4). Số liệu trong tài liệu
+đo bằng chế độ Docker. Khi không có TTY, `run_pnr.sh` tự bọc `librelane --dockerized` bằng `script`.
 
 ## Chạy từng bước
 
@@ -31,7 +32,7 @@ Không có image Docker? `scripts/run_pnr.sh` và `scripts/olsh` tự chạy nat
 | Tổng hợp + STA | `make synth sta` |
 | So sánh CSLA / RCA | `make compare` |
 | RTL→GDSII | `make pnr` (10 ns), `make pnr5` (5 ns) |
-| Số liệu sau PnR | `python3 scripts/parse_ol_metrics.py` |
+| Số liệu sau PnR | `python3 scripts/parse_ol_metrics.py` (10 ns, ghi `pnr.*`) và `--run 5ns` (ghi `pnr5.*`); cũng sinh `results/logs/t8.txt` |
 | τ và Logical Effort | `make le-test`, `make tau`, `python3 analysis/le/fa_path.py` |
 | FA full-custom | `make fa-layout`, `make fa-drc`, `make fa-lvs`, `make fa-pex` |
 | Hình | `make figures` |

@@ -19,25 +19,41 @@ if [ "$PERIOD" != "10" ]; then
      pnr/config.json > "$CFG"
 fi
 
-echo "SYNTH_HIERARCHY_MODE=keep (LibreLane $($FLOW_CLI --version | head -1))" > results/logs/t8.txt
 # Docker image if present, otherwise the tools on PATH (e.g. a nix profile).
-if [ -n "${OL_IMAGE:-}" ]; then MODE=(--dockerized); else
-  MODE=(--manual-pdk)
+if [ -n "${OL_IMAGE:-}" ]; then MODE=(--dockerized); RUN_MODE=dockerized; else
+  MODE=(--manual-pdk); RUN_MODE=native
   # tools with an embedded Python (yosys -y, openroad -python) need the venv's packages
   export PATH="$(dirname "$FLOW_CLI"):$PATH"   # bare `python3` calls in flow scripts
   export PYTHONPATH="$("$(dirname "$FLOW_CLI")/python" -c 'import site; print(site.getsitepackages()[0])')${PYTHONPATH:+:$PYTHONPATH}"
 fi
-$FLOW_CLI "${MODE[@]}" --run-tag "$TAG" --overwrite --pdk-root "$PDK_ROOT" \
- "$CFG" > "results/logs/pnr_${TAG}.log" 2>&1 \
+CMD=("$FLOW_CLI" "${MODE[@]}" --run-tag "$TAG" --overwrite --pdk-root "$PDK_ROOT" "$CFG")
+
+# `librelane --dockerized` starts `docker run -it`, which needs a TTY on stdin. Without one
+# (CI, pipes, agents) run the command under `script`, which allocates a pty; -e makes
+# `script` return the exit status of the wrapped command.
+if [ "$RUN_MODE" = dockerized ] && [ ! -t 0 ]; then
+  CMD=(script -qec "$(printf '%q ' "${CMD[@]}")" /dev/null)
+fi
+"${CMD[@]}" > "results/logs/pnr_${TAG}.log" 2>&1 \
   || { tail -n 40 "results/logs/pnr_${TAG}.log"; exit 1; }
 
-[ "$PERIOD" = "10" ] || exit 0
 RUN="pnr/runs/$TAG/final"
-rm -rf pnr/final && mkdir -p pnr/final
+DEST=pnr/final; [ "$PERIOD" = "10" ] || DEST="pnr/final_${PERIOD}ns"
+rm -rf "$DEST" && mkdir -p "$DEST"
+cp "$RUN"/metrics.json "$DEST/ol_metrics.json"
+jq -n --arg mode "$RUN_MODE" --arg image "${OL_IMAGE:-}" \
+      --arg flow "$("$FLOW_CLI" --version | head -1)" --arg cfg "$CFG" \
+      --argjson period "$PERIOD" --arg hier "$(jq -r .SYNTH_HIERARCHY_MODE "$CFG")" \
+  '{mode:$mode, image:$image, flow:$flow, config:$cfg, clock_period_ns:$period, synth_hierarchy_mode:$hier}' \
+  > "$DEST/run_info.json"
+if [ "$PERIOD" != "10" ]; then
+  python3 scripts/parse_ol_metrics.py --run "${PERIOD}ns"
+  exit 0
+fi
 cp -r "$RUN"/{def,nl,spef,sdf,sdc,lef,lib} pnr/final/ 2>/dev/null || true
 cp "$RUN"/gds/carryselect4_top.gds pnr/final/carryselect4_top.gds
-cp "$RUN"/metrics.json pnr/final/ol_metrics.json
 find "pnr/runs/$TAG" -path '*signoff*' -name '*.rpt' -o -name '*drc*.rpt' -o -name '*lvs*.rpt' 2>/dev/null | xargs -r -I{} cp {} pnr/final/
 echo "== gate =="
 jq 'with_entries(select(.key|test("timing__(setup|hold)__ws")))' pnr/final/ol_metrics.json
 jq '."magic__drc_error__count", ."klayout__drc_error__count", ."design__lvs_error__count"' pnr/final/ol_metrics.json
+python3 scripts/parse_ol_metrics.py --run 10ns > /dev/null
