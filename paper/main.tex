@@ -21,19 +21,17 @@ trungnq.23ceb@vku.udn.vn, tunma.23ce@vku.udn.vn}}
 \maketitle
 
 \begin{abstract}
-We present CarrySelect-4, a 4-bit carry-select adder (CSLA) wrapped in a valid/ready interface and
-taken through a complete open-source flow on the SkyWater SKY130 process. The datapath splits the
-adder into a 2-bit ripple block and two speculative 2-bit blocks whose results are selected by the
-low carry; a three-state Moore controller registers inputs and outputs, giving a latency of
-\metric{sim.latency_cycles} cycles and one result every \metric{sim.cycles_per_result} cycles.
-Exhaustive self-checking simulation passes \metric{sim.exhaustive.checked} of
-\metric{sim.exhaustive.checked} input vectors. Synthesis with Yosys uses
-\metric{synth.top.nand2_eq} NAND2 equivalents, and LibreLane places and routes the design at
-100\,MHz with positive setup and hold slack in all nine signoff corners and zero DRC and LVS errors.
-In a second branch we size, lay out and extract a 28-transistor mirror full adder in Magic and
-compare a Logical Effort estimate of the ripple-carry path with pre- and post-layout SPICE: the
-estimate of \metric{le.D_est_ps}\,ps lies between the schematic result
-(\metric{spice.D_pre_ps}\,ps) and the extracted result (\metric{spice.D_post_ps}\,ps).
+We built CarrySelect-4, a 4-bit carry-select adder (CSLA) behind a valid/ready interface, and took it
+from RTL to GDSII on SkyWater SKY130 with open-source tools only. The adder has a 2-bit ripple block
+and two speculative 2-bit blocks, and the low carry selects between their results. A three-state Moore
+controller registers the inputs and outputs, which gives a latency of \metric{sim.latency_cycles}
+cycles and one result every \metric{sim.cycles_per_result} cycles. Self-checking simulation passes
+\metric{sim.exhaustive.checked} of \metric{sim.exhaustive.checked} input vectors. Synthesis with Yosys
+gives \metric{synth.top.nand2_eq} NAND2 equivalents. After place and route with LibreLane at 100\,MHz,
+setup and hold slack are positive in all nine signoff corners and DRC and LVS report no errors. In a
+separate branch we sized, laid out and extracted a 28-transistor mirror full adder in Magic. A Logical
+Effort estimate of its ripple-carry path, \metric{le.D_est_ps}\,ps, falls between the schematic SPICE
+result (\metric{spice.D_pre_ps}\,ps) and the extracted one (\metric{spice.D_post_ps}\,ps).
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -41,26 +39,28 @@ carry-select adder, SKY130, OpenLane, LibreLane, logical effort, full-custom lay
 \end{IEEEkeywords}
 
 \section{Introduction}
-The carry chain sets the delay of an $n$-bit ripple-carry adder (RCA), which grows as $O(n)$.
-A carry-select adder~\cite{bedrij1962} computes the upper bits twice, once for each value of the
-incoming carry, and picks the right result with a multiplexer, trading area for delay~\cite{weste2010}.
-This work implements a small but complete instance of that idea and follows it through every step
-of a modern open-source flow: RTL and verification, synthesis and static timing with
-Yosys~\cite{yosys} and OpenSTA~\cite{opensta}, and physical design with OpenLane~2 / LibreLane~\cite{openlane,librelane}
-on SKY130~\cite{skywater}. We then study the adder's leaf cell, a mirror full adder, at transistor
-level with Logical Effort~\cite{sutherland1999} and Magic~\cite{magic}, and check how well the hand
-estimate predicts SPICE before and after layout.
+In a ripple-carry adder (RCA) the carry passes through every bit, so the delay grows as $O(n)$ with the
+word length $n$. A carry-select adder~\cite{bedrij1962} shortens this path. It computes the upper bits
+twice, once for each possible incoming carry, and a multiplexer picks the right result once the real
+carry is known. The price is extra area~\cite{weste2010}. We wanted to see what this trade looks like in
+a real flow, so we built a 4-bit instance and followed it through RTL and verification, through
+synthesis and static timing with Yosys~\cite{yosys} and OpenSTA~\cite{opensta}, and through place and
+route with OpenLane~2 / LibreLane~\cite{openlane,librelane} on SKY130~\cite{skywater}. The second half
+of the project goes down to transistor level. We drew the adder's leaf cell, a mirror full adder, in
+Magic~\cite{magic} and checked how close a hand estimate with Logical Effort~\cite{sutherland1999}
+comes to SPICE before and after layout.
 
 \section{Architecture}
-Fig.~\ref{fig:block} shows the top level. The 9-bit input word $\{c_{in}, b, a\}$ is captured in an
-input bank (9 FF) when \texttt{ld\_en = valid\_in \& ready\_out}. The CSLA uses six full adders in
-three 2-bit RCAs: \emph{low} adds $a[1{:}0]+b[1{:}0]+c_{in}$, while \emph{hi0} and \emph{hi1} add
-$a[3{:}2]+b[3{:}2]$ with a carry-in of 0 and 1. The low carry $c_2$ drives the select inputs of three
-2:1 multiplexers for \texttt{sum[3:2]} and \texttt{cout}. Full adder and multiplexer modules keep
-their hierarchy during synthesis so that the carry-select structure survives technology mapping.
-The 5-bit result is stored in an output bank (5 FF). A Moore controller with two state bits
-(Fig.~\ref{fig:fsm}) sequences IDLE, COMPUTE and DONE; the unused code returns to IDLE. All
-\metric{synth.top.ff_count} flip-flops use an asynchronous active-low reset.
+Fig.~\ref{fig:block} shows the top level. A 9-bit input word $\{c_{in}, b, a\}$ is captured in an input
+bank of 9 flip-flops when \texttt{ld\_en = valid\_in \& ready\_out}. The CSLA splits its six full adders
+into three 2-bit RCAs. The \emph{low} block adds $a[1{:}0]+b[1{:}0]+c_{in}$. The \emph{hi0} and
+\emph{hi1} blocks both add $a[3{:}2]+b[3{:}2]$, one with a carry-in of 0 and one with 1. The carry
+$c_2$ out of the low block drives the select inputs of three 2:1 multiplexers, which produce
+\texttt{sum[3:2]} and \texttt{cout}. The full adder and multiplexer modules keep their hierarchy
+through synthesis, because otherwise ABC is free to rebuild the netlist as a different adder. The
+5-bit result goes into an output bank of 5 flip-flops. A Moore controller with two state bits
+(Fig.~\ref{fig:fsm}) steps through IDLE, COMPUTE and DONE, and the unused state code falls back to IDLE.
+All \metric{synth.top.ff_count} flip-flops use an asynchronous active-low reset.
 
 \begin{figure}[t]
 \centering
@@ -77,10 +77,10 @@ The 5-bit result is stored in an output bank (5 FF). A Moore controller with two
 \end{figure}
 
 \section{Verification}
-A self-checking SystemVerilog testbench runs on Verilator and compares every output against vectors
-from an independent Python golden model. Table~\ref{tab:ver} lists the cases. Fig.~\ref{fig:wave}
-shows back-to-back transfers: an input accepted at clock edge $k$ produces \texttt{valid\_out} at
-edge $k+2$, and the next result follows two cycles later.
+The testbench is self-checking SystemVerilog running on Verilator. A scoreboard compares each result
+with vectors from an independent Python golden model and also checks that the latency is exactly two
+cycles. Table~\ref{tab:ver} lists the cases. In Fig.~\ref{fig:wave} an input accepted at clock edge $k$
+gives \texttt{valid\_out} at edge $k+2$, and the next result arrives two cycles after that.
 
 \begin{table}[t]
 \centering
@@ -108,18 +108,21 @@ Case & Scenario & Result \\
 \end{figure}
 
 \section{Synthesis and Physical Design}
-Yosys maps the design to \texttt{sky130\_fd\_sc\_hd} cells: \metric{synth.top.cell_count} cells,
-\metric{synth.top.area_um2}\umsq, i.e.\ \metric{synth.top.nand2_eq} NAND2 equivalents against a
-budget of 500. With a 10\,ns clock and 2\,ns input/output delays, OpenSTA reports a worst setup slack
-of \metric{sta.synth.wns_setup_ns}\,ns at the typical corner; the register-to-register critical path
-\texttt{\metric{sta.synth.crit_path}} arrives after \metric{sta.synth.crit_arrival_ns}\,ns.
+Yosys maps the design onto \texttt{sky130\_fd\_sc\_hd} cells. The result is \metric{synth.top.cell_count}
+cells and \metric{synth.top.area_um2}\umsq, or \metric{synth.top.nand2_eq} NAND2 equivalents against a
+budget of 500. We constrained a 10\,ns clock with 2\,ns input and output delays. OpenSTA then reports a
+worst setup slack of \metric{sta.synth.wns_setup_ns}\,ns at the typical corner. The register-to-register
+critical path, \texttt{\metric{sta.synth.crit_path}}, arrives after \metric{sta.synth.crit_arrival_ns}\,ns.
 
-Fig.~\ref{fig:ad} compares the CSLA with a 4-bit RCA. With hierarchy kept, the CSLA is faster
-(\metric{cmp.csla4.delay_ns} vs.\ \metric{cmp.rca4.delay_ns}\,ns) but larger
+Fig.~\ref{fig:ad} compares the CSLA with a 4-bit RCA. With the hierarchy kept, the CSLA is faster
+(\metric{cmp.csla4.delay_ns} vs.\ \metric{cmp.rca4.delay_ns}\,ns) and larger
 (\metric{cmp.csla4.area_um2} vs.\ \metric{cmp.rca4.area_um2}\umsq), so its area--delay product is
-worse. When ABC may flatten the logic, both shrink and slow down; the flat CSLA keeps the lower delay
-(\metric{cmp.csla4_flat.delay_ns} vs.\ \metric{cmp.rca4_flat.delay_ns}\,ns) and gives the best
-area--delay product. At four bits the duplicated upper block costs nearly as much as it saves.
+worse. When ABC may flatten the logic, both adders shrink and slow down. The flat CSLA is still the
+faster one (\metric{cmp.csla4_flat.delay_ns} vs.\ \metric{cmp.rca4_flat.delay_ns}\,ns) and has the best
+area--delay product. We did not isolate why the speed-up is small at this width; the duplicated upper
+block is the likely cost. The flat ranking also depends on the tool version: an earlier run with
+Yosys 0.70 in another environment ordered the two flat netlists the other way round, so we base our
+conclusion on the hierarchical comparison.
 
 \begin{figure}[t]
 \centering
@@ -128,11 +131,11 @@ area--delay product. At four bits the duplicated upper block costs nearly as muc
 \label{fig:ad}
 \end{figure}
 
-LibreLane places and routes the design with a 55\% core-utilization target and aspect ratio 1
-(Fig.~\ref{fig:layout}). Table~\ref{tab:ppa} summarizes signoff. Setup and hold slack are positive in
-all nine corners (min/nom/max extraction $\times$ ss/tt/ff), including the recovery/removal checks of
-\texttt{rst\_n}. The estimated maximum frequency at the typical corner is
-\metric{pnr.fmax_mhz}\,MHz. \metric{pnr5.text_en}
+LibreLane places and routes the design with a 55\% core-utilization target and an aspect ratio of 1
+(Fig.~\ref{fig:layout}); Table~\ref{tab:ppa} gives the signoff numbers. Setup and hold slack are
+positive in all nine corners (min/nom/max extraction $\times$ ss/tt/ff), including the
+recovery and removal checks on \texttt{rst\_n}. At the typical corner the estimated maximum frequency
+is \metric{pnr.fmax_mhz}\,MHz. \metric{pnr5.text_en}
 
 \begin{table}[t]
 \centering
@@ -162,36 +165,36 @@ Total power (mW), wirelength (\textmu m) & \metric{pnr.power_total_mw}, \metric{
 \end{figure}
 
 \section{Full-Custom Full Adder and Logical Effort}
-The leaf cell is a 28-transistor mirror adder: a majority (carry) gate produces $\overline{C_o}$,
-a sum gate reuses it to produce $\overline{S}$, and two inverters restore polarity. An FO4 inverter
-simulation in ngspice (typical corner) gives $\tau=\metric{le.tau_ps}$\,ps
+The leaf cell is a 28-transistor mirror adder. A majority (carry) gate produces $\overline{C_o}$, the
+sum gate reuses that signal to produce $\overline{S}$, and two inverters restore the polarity. We
+simulated an FO4 inverter in ngspice at the typical corner and obtained $\tau=\metric{le.tau_ps}$\,ps
 (FO4 $=\metric{le.fo4_ps}$\,ps) and $p_{inv}=\metric{le.pinv}$ for $W_p/W_n$ =
 \metric{le.wp_unit_um}/\metric{le.wn_unit_um}.
 
-We analyse the 2-bit ripple path inside each RCA block, from $a_0$ through two carry gates and two
-inverters to $c_2$, which drives three multiplexer select pins
-($C_{load}=3\,C_{S,\text{mux2}}$). With $g_{carry}=2$, $g_{inv}=1$ and branching taken from the
-transistor widths,
+We analysed the 2-bit ripple path inside an RCA block. It runs from $a_0$ through two carry gates and
+two inverters to $c_2$, which drives three multiplexer select pins ($C_{load}=3\,C_{S,\text{mux2}}$).
+We took $g_{carry}=2$ and $g_{inv}=1$, and read the branching effort from the transistor widths. Then
 \begin{equation}
 F = GBH,\qquad \hat f = F^{1/N},\qquad D = N\hat f + P,
 \end{equation}
-where $G=\metric{le.G}$, $B=\metric{le.B}$, $H=\metric{le.H}$ and $N=\metric{le.N}$, so
-$F=\metric{le.F}$ and $\hat f=\metric{le.fhat}$. With $P = 2p_{carry}+2p_{inv}$ and a simulated
-$p_{carry}=\metric{le.p_carry}$, $D=\metric{le.D_est_tau}\,\tau=\metric{le.D_est_ps}$\,ps.
-Sizing S1 scales each transistor by its stack depth; sizing S2 also gives the carry-out inverter the
-size that Logical Effort assigns to the last stage. S2 is faster in SPICE
-(\metric{fa.s2.delay_pre_ps} vs.\ \metric{fa.s1.delay_pre_ps}\,ps) and was laid out.
+with $G=\metric{le.G}$, $B=\metric{le.B}$, $H=\metric{le.H}$ and $N=\metric{le.N}$, so that
+$F=\metric{le.F}$ and $\hat f=\metric{le.fhat}$. The parasitic term is $P = 2p_{carry}+2p_{inv}$, and
+we simulated $p_{carry}=\metric{le.p_carry}$. This gives $D=\metric{le.D_est_tau}\,\tau=\metric{le.D_est_ps}$\,ps.
+We tried two sizings. S1 scales each transistor by its stack depth. S2 also gives the carry-out
+inverter the size that Logical Effort assigns to the last stage. S2 was faster in SPICE
+(\metric{fa.s2.delay_pre_ps} vs.\ \metric{fa.s1.delay_pre_ps}\,ps), so we laid it out.
 
-The layout (Fig.~\ref{fig:fa}) orders the shared polysilicon columns along Euler paths, so the pMOS
-and nMOS rows need a single diffusion break. Full-width n- and p-tap rows under the supply rails keep
-every device within a few micrometres of a tap, far inside the 15\um\ latch-up limit. The cell
-measures \metric{fa.width_um}\,$\times$\,\metric{fa.height_um}\um\ (\metric{fa.area_um2}\umsq),
-is DRC-clean with the full SKY130 deck, and matches the schematic in Netgen LVS. Table~\ref{tab:le}
-and Fig.~\ref{fig:le} compare the estimate with SPICE. Relative to the schematic simulation the
-estimate is off by \metric{le.err_pre_pct}\% (too slow); relative to the extracted netlist it is off
-by \metric{le.err_post_pct}\% (too fast). The schematic omits source/drain junction capacitance, and extraction
-adds it together with \metric{fa.pex_cap_count} wiring capacitors; Logical Effort folds all of this
-into a single parasitic term per stage.
+In the layout (Fig.~\ref{fig:fa}) the shared polysilicon columns follow Euler paths, which leaves a
+single diffusion break in the pMOS and nMOS rows. Full-width n- and p-tap rows under the supply
+rails keep every device within a few micrometres of a tap, well inside the 15\um\ latch-up limit. The
+cell measures \metric{fa.width_um}\,$\times$\,\metric{fa.height_um}\um\ (\metric{fa.area_um2}\umsq).
+That is about ten times the 20.02\umsq\ of the library's \texttt{fa\_1} cell. It is DRC-clean with the
+full SKY130 deck and matches the schematic in Netgen LVS. Table~\ref{tab:le} and Fig.~\ref{fig:le}
+compare the estimate with SPICE. Against the schematic simulation the estimate is off by
+\metric{le.err_pre_pct}\% (too slow). Against the extracted netlist it is off by
+\metric{le.err_post_pct}\% (too fast). The schematic netlist has no source/drain junction
+capacitance, while extraction adds it together with \metric{fa.pex_cap_count} wiring capacitors.
+Logical Effort folds all of this into one parasitic term per stage.
 
 \begin{table}[t]
 \centering
@@ -223,13 +226,21 @@ SPICE, extracted & \metric{spice.D_post_ps} & \metric{le.err_post_pct}\% \\
 \end{figure}
 
 \section{Conclusion}
-CarrySelect-4 meets its functional and timing targets: exhaustive simulation passes, the routed
-design closes at 100\,MHz in every corner with clean DRC, LVS and antenna checks, and it uses less
-than half of its area budget. At four bits the carry-select structure is faster than ripple carry
-but does not win on area--delay product unless synthesis is allowed to flatten it. The full-custom
-study shows that Logical Effort picks the faster sizing and lands within the pre/post-layout band,
-but a layout-aware parasitic term is needed for accurate absolute delay. The custom cell is a
-study cell and is not used in the standard-cell flow.
+CarrySelect-4 reached its functional and timing targets. Exhaustive simulation passes, the routed
+design closes at 100\,MHz in every corner with clean DRC, LVS and antenna checks, and it uses less than
+half of its area budget. At four bits the carry-select structure is faster than ripple carry but
+loses on area--delay product unless synthesis flattens it. In the full-custom study, Logical Effort
+picked the faster of the two sizings and gave a delay inside the pre- and post-layout band. It cannot
+give an accurate absolute delay without a layout-aware parasitic term. The custom cell is a study
+cell and is not used in the standard-cell flow.
+
+Three limitations apply. The custom adder is much larger than the library cell: we did not optimise
+its area, and its routing uses nine horizontal metal-1 tracks. The pre-layout simulation had no diffusion capacitance
+(no \texttt{ad}, \texttt{as}, \texttt{pd}, \texttt{ps} on the devices), so the gap between the
+pre- and post-layout results is likely larger than the layout alone would cause. And the ranking of
+the flattened adders depends on the synthesis tool version. As next steps we would place the custom
+adder in the flow as a macro with LEF and LIB views generated from its layout, and compare wider
+adders (8 to 32 bits, with unequal block sizes), where carry-select should pay off more clearly.
 
 \bibliographystyle{IEEEtran}
 \bibliography{refs}
