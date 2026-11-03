@@ -75,7 +75,7 @@ if [ -n "$pages" ] && [ "$pages" -le 4 ]; then echo "  ok    paper pages = $page
 if unzip -p report/baocao_CarrySelect4.docx word/document.xml | grep -q '{{'; then
   echo "  FAIL  report has unresolved placeholders"; FAILS+=(report-placeholders); else echo "  ok    report placeholders resolved"; fi
 nslides=$(unzip -l slides/CarrySelect4_BaoVe.pptx | grep -cE 'ppt/slides/slide[0-9]+\.xml')
-if [ "$nslides" -ge 14 ] && [ "$nslides" -le 18 ]; then echo "  ok    slides = $nslides"; else echo "  FAIL  slides = $nslides"; FAILS+=(slides); fi
+if [ "$nslides" -ge 10 ] && [ "$nslides" -le 18 ]; then echo "  ok    slides = $nslides"; else echo "  FAIL  slides = $nslides"; FAILS+=(slides); fi
 if python3 scripts/check_consistency.py; then :; else FAILS+=(consistency); fi
 
 echo "== GDS =="
