@@ -1,4 +1,4 @@
-# Giới thiệu
+# Mở đầu {-}
 
 ## Bối cảnh
 
@@ -34,4 +34,4 @@ Mọi số liệu trong báo cáo được đọc tự động từ `results/met
 
 ## Cấu trúc báo cáo
 
-Chương 2 nhắc lại cơ sở lý thuyết: RCA, CSLA, valid/ready, FSM Moore, Logical Effort và luồng RTL→GDSII. Chương 3 mô tả thiết kế RTL, chương 4 là kiểm chứng. Chương 5 trình bày tổng hợp, phân tích thời gian tĩnh và so sánh CSLA với RCA. Chương 6 là thiết kế vật lý bằng OpenLane 2 / LibreLane. Chương 7 nói về Full Adder full-custom và Logical Effort. Chương 8 kết luận, chương 9 gồm tài liệu tham khảo và phụ lục.
+Chương 1 nhắc lại cơ sở lý thuyết: RCA, CSLA, valid/ready, FSM Moore, Logical Effort và luồng RTL→GDSII. Chương 2 mô tả thiết kế RTL và kiểm chứng. Chương 3 trình bày tổng hợp, phân tích thời gian tĩnh, so sánh CSLA với RCA và thiết kế vật lý bằng OpenLane 2 / LibreLane. Chương 4 nói về Full Adder full-custom và Logical Effort. Phần kết luận đối chiếu kết quả với mục tiêu; cuối báo cáo là tài liệu tham khảo và phụ lục.

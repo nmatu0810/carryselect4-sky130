@@ -1,6 +1,6 @@
-# Kết luận
+# Kết luận và hướng phát triển {-}
 
-## Đối chiếu với mục tiêu
+## Đối chiếu với mục tiêu {-}
 
 Bảng: Mục tiêu trong đề cương và kết quả đạt được
 | Mục tiêu | Đạt được | Đánh giá |
@@ -16,7 +16,7 @@ Bảng: Mục tiêu trong đề cương và kết quả đạt được
 | FA 28T full-custom, DRC = 0, LVS khớp, có tap | {{fa.ntrans}} transistor, DRC {{fa.drc_errors}}, LVS {{fa.lvs_match}}, {{fa.taps}} dải tap | Đạt |
 | PEX, SPICE, đối chiếu LE | LE {{le.D_est_ps}} ps; SPICE {{spice.D_pre_ps}} / {{spice.D_post_ps}} ps | Đạt |
 
-## Hạn chế
+## Hạn chế {-}
 
 Ở độ rộng 4 bit, CSLA chỉ nhanh hơn RCA khoảng một phần tư nhưng tốn diện tích gần gấp đôi. Lợi ích của carry-select chưa thể hiện rõ ở quy mô này, và nhóm chưa thử độ rộng lớn hơn để xác nhận điểm hòa vốn.
 
@@ -30,13 +30,13 @@ Mô phỏng SPICE trước layout không có điện dung khuếch tán, vì net
 
 Cuối cùng, đầu ra không có backpressure (D-3), nên lõi chỉ dùng được khi phía nhận luôn sẵn sàng.
 
-## Hướng phát triển
+## Hướng phát triển {-}
 
 Việc nên làm trước là đưa điện dung khuếch tán vào mô phỏng trước layout, để biết sai số của Logical Effort đến từ đâu. Sau đó nhóm muốn thu gọn layout Full Adder (bớt track, chia sẻ diffusion nhiều hơn) và đưa ký sinh của layout vào mô hình Logical Effort.
 
 Hai hướng lớn hơn là ghép Full Adder full-custom vào luồng OpenLane dưới dạng macro, với LEF/LIB sinh từ layout và kết quả đặc trưng hóa, để so trực tiếp với FA standard cell; và mở rộng lên 8, 16 hoặc 32 bit với CSLA nhiều tầng hoặc khối có kích thước không đều (square-root CSLA), nơi lợi thế so với RCA sẽ rõ hơn. Nếu cần dùng lõi trong hệ thống thật, nhóm sẽ thêm `ready_in` ở đầu ra để hỗ trợ backpressure.
 
-## Phân công công việc
+## Phân công công việc {-}
 
 Nhóm chia việc theo hai nửa của luồng thiết kế để mỗi người nắm trọn một mạch từ đầu đến cuối và trình bày được phần của mình: Tú phụ trách phần số phía trước (từ RTL tới kết quả tổng hợp), Trung phụ trách phần vật lý (place-and-route và Full Adder full-custom). Tài liệu do cả hai cùng viết, mỗi người viết các chương thuộc phần mình làm.
 

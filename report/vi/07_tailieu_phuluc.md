@@ -1,6 +1,4 @@
-# Tài liệu tham khảo và phụ lục
-
-## Tài liệu tham khảo
+# Danh mục tài liệu tham khảo {-}
 
 1. O. J. Bedrij, "Carry-select adder," *IRE Transactions on Electronic Computers*, vol. EC-11, no. 3, pp. 340–346, 1962.
 2. N. H. E. Weste and D. M. Harris, *CMOS VLSI Design: A Circuits and Systems Perspective*, 4th ed. Addison-Wesley, 2010.
@@ -12,7 +10,9 @@
 8. I. Sutherland, B. Sproull, and D. Harris, *Logical Effort: Designing Fast CMOS Circuits*. Morgan Kaufmann, 1999.
 9. J. K. Ousterhout, G. T. Hamachi, R. N. Mayo, W. S. Scott, and G. S. Taylor, "Magic: A VLSI layout system," in *Proc. 21st Design Automation Conference (DAC)*, 1984, pp. 152–159.
 
-## Phụ lục A: Cây thư mục
+# Phụ lục {-}
+
+## Phụ lục A: Cây thư mục {-}
 
 Bảng: Các thư mục chính của repository
 | Thư mục | Nội dung |
@@ -28,7 +28,7 @@ Bảng: Các thư mục chính của repository
 | `docs/` | đề cương thực hiện, sai khác (`DEVIATIONS.md`), hình vẽ |
 | `paper/`, `report/`, `slides/` | bài báo IEEE, báo cáo .docx, slide bảo vệ |
 
-## Phụ lục B: Các lệnh make
+## Phụ lục B: Các lệnh make {-}
 
 Bảng: Lệnh make chính
 | Lệnh | Chức năng |
@@ -45,7 +45,7 @@ Bảng: Lệnh make chính
 | `make figures` | sinh toàn bộ hình |
 | `make paper`, `make report` | dựng bài báo và báo cáo |
 
-## Phụ lục C: Các script chính
+## Phụ lục C: Các script chính {-}
 
 - `scripts/env.sh`, `scripts/olsh`, `scripts/metrics.py`
 - `scripts/parse_synth.py`, `scripts/run_cmp.sh`, `scripts/run_pnr.sh`, `scripts/parse_ol_metrics.py`, `scripts/gds2png.py`
