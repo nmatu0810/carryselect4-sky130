@@ -38,11 +38,13 @@ Hai hướng lớn hơn là ghép Full Adder full-custom vào luồng OpenLane d
 
 ## Phân công công việc
 
-Bảng: Phân công công việc (theo đề cương; A = Nguyễn Minh Anh Tú, B = Ngụy Quốc Trung)
+Nhóm chia việc theo hai nửa của luồng thiết kế để mỗi người nắm trọn một mạch từ đầu đến cuối và trình bày được phần của mình: Tú phụ trách phần số phía trước (từ RTL tới kết quả tổng hợp), Trung phụ trách phần vật lý (place-and-route và Full Adder full-custom). Tài liệu do cả hai cùng viết, mỗi người viết các chương thuộc phần mình làm.
+
+Bảng: Phân công công việc
 | Hạng mục | Thành viên |
 |---|---|
-| RTL, FSM, testbench và kiểm chứng | [cần xác nhận] |
-| Tổng hợp, STA, so sánh CSLA–RCA | [cần xác nhận] |
-| OpenLane / LibreLane, sign-off | [cần xác nhận] |
-| FA full-custom, Logical Effort, SPICE | [cần xác nhận] |
-| Bài báo, báo cáo, slide | [cần xác nhận] |
+| RTL, FSM, testbench và kiểm chứng | Nguyễn Minh Anh Tú |
+| Tổng hợp, STA, so sánh CSLA–RCA | Nguyễn Minh Anh Tú |
+| OpenLane / LibreLane, sign-off | Ngụy Quốc Trung |
+| FA full-custom, Logical Effort, SPICE | Ngụy Quốc Trung |
+| Bài báo, báo cáo, slide | Cả hai thành viên |
