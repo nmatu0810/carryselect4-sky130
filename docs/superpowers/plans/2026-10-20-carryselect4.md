@@ -15,7 +15,7 @@ Mọi con số đo được đều ghi vào một file duy nhất `results/metri
 - **Mô phỏng:** Verilator ≥ 5.0 (`--binary --timing`); Python 3 + pytest cho golden model.
 - **Toolchain số:** Yosys, OpenSTA, LibreLane (bản kế tục OpenLane 2, chạy `--dockerized`). Trong tài liệu gọi là "OpenLane 2 / LibreLane".
 - **Full-custom:** Magic, Netgen, Ngspice với PDK sky130A, thư viện `sky130_fd_sc_hd`.
-- **Tài liệu:** tectonic (LaTeX, IEEEtran), docx-js (skill `anthropic-skills:docx`), pptxgenjs (skill `anthropic-skills:pptx`).
+- **Tài liệu:** tectonic (LaTeX, IEEEtran), docx-js, pptxgenjs.
 
 **Spec:** `/home/tus/workspace/VKU/VLSI/baocao_decuong_VLSI_TU_TRUNG.pdf`, kèm guideline 4 phase và bảng deliverables trong `/home/tus/workspace/VKU/VLSI/CSLA_VLSI_Project_Report.md` (mục II–VII). Nếu hai file mâu thuẫn, **PDF đề cương thắng**. Riêng định dạng deliverable (IEEE 4 trang, slide 15 phút) lấy theo file `.md`.
 
@@ -841,7 +841,6 @@ grep -nE '[0-9]+\.[0-9]+ ?(ns|ps|MHz|um|µm)' paper/main.tex | grep -v metric   
     - placeholder `{{key}}`: thay bằng giá trị trong metrics.json; nếu key không tồn tại thì **build thất bại** (thoát với mã 1).
   - **Trang bìa** lấy từ `00_meta.json`: trường, khoa, học phần, tên đề tài, nhóm, sinh viên, GVHD (để trống `"GVHD": ""` để người dùng tự điền), "Đà Nẵng, 2026". Có mục lục (TOC field).
   - **Định dạng:** Times New Roman 13pt, giãn dòng 1.3, lề T/B/L/R = 2/2/3/2 cm, khổ A4, có số trang ở footer.
-- Dùng skill `anthropic-skills:docx` (docx-js) khi viết bộ dựng.
 
 - [ ] **Step 1:** Viết `build_docx.mjs` cùng một file test `report/vi/zz_selftest.md` có đủ mọi cú pháp và placeholder `{{sim.latency_cycles}}`. Build phải thành công.
 - [ ] **Step 2:** Đổi placeholder trong file test thành `{{no.such}}`. Build phải thất bại với mã thoát 1. Sau đó xóa `zz_selftest.md`.
@@ -935,7 +934,7 @@ unzip -l report/baocao_CarrySelect4.docx | grep -c 'media/'     # >= 10 hình
 - Generated: `slides/CarrySelect4_BaoVe.pptx`
 
 **Interfaces:**
-- Consumes: `results/metrics.json`, `docs/figures/*.png`. Dùng skill `anthropic-skills:pptx` (pptxgenjs).
+- Consumes: `results/metrics.json`, `docs/figures/*.png`. Dùng pptxgenjs.
 - Produces:
   - Một file `.pptx` tiếng Việt, 16:9, gồm 14–18 slide.
   - **Số liệu đọc từ `metrics.json` trong script, không gõ tay.** Key thiếu thì build lỗi.
