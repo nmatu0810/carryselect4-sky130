@@ -142,16 +142,16 @@ s.addNotes("Giới thiệu nhóm và đề tài: lõi cộng CSLA 4 bit đi hế
 s = slideIn("Mở đầu");
 s.addText("Bối cảnh và mục tiêu", { placeholder: "title" });
 bullets(s, [
-  "Bộ cộng nằm trong ALU, khối tính địa chỉ, bộ tăng tốc DSP của SoC biên",
-  "RCA: nhớ lan qua từng bit, trễ O(n)",
-  "CSLA: tính trước phần bit cao cho cả nhớ 0 và 1, dùng MUX chọn",
-  "Mục tiêu: luồng mã nguồn mở đầy đủ trên SKY130 và leaf cell full-custom",
+  "Bộ cộng có mặt trong ALU và khối tính địa chỉ",
+  "RCA: nhớ lan qua từng bit, trễ tăng theo O(n)",
+  "CSLA: tính trước bit cao cho nhớ 0 và 1, MUX chọn khi có nhớ thật",
+  "Mục tiêu: đi hết luồng mã nguồn mở trên SKY130, kèm một leaf cell vẽ tay",
 ], 0.5, 1.15, 4.6, 3.6);
 stat(s, 5.4, 1.15, 2.0, 1.45, "100", "MHz", "đóng timing sau route, mọi corner");
 stat(s, 7.6, 1.15, 1.9, 1.45, "≤ 500", "", "NAND2 tương đương");
 stat(s, 5.4, 2.85, 2.0, 1.45, "512/512", "", "tổ hợp khớp mô hình tham chiếu", C.accent2);
 stat(s, 7.6, 2.85, 1.9, 1.45, "0", "", "lỗi DRC / LVS", C.accent2);
-s.addNotes("Bốn mục tiêu chính lấy từ đề cương: tần số, diện tích, kiểm chứng và sign-off.");
+s.addNotes("Bốn con số trên là bốn mục tiêu của đề cương: tần số, diện tích, kiểm chứng và sign-off.");
 
 // 3. architecture
 s = slideIn("Thiết kế");
@@ -201,7 +201,7 @@ table(s, [
 bullets(s, [
   "Verilator, testbench tự kiểm tra, scoreboard",
   "Vector từ mô hình Python độc lập",
-  "Mutation test: 6 lỗi cố ý đều bị bắt (1 đột biến tương đương)",
+  "Mutation test: 6 đột biến đều bị bắt; 1 đột biến tương đương không quan sát được",
 ], 6.7, 1.2, 2.8, 3.6, 14);
 
 // 7. waveforms
@@ -241,8 +241,9 @@ s.addChart(pres.charts.BAR, [{ name: "Trễ (ns)", labels: variants, values: vk.
   dataLabelPosition: "outEnd", dataLabelFormatCode: "0.00", chartColors: [HEX.accent2], showLegend: false, ...chartText,
 });
 s.addText(`Giữ phân cấp: CSLA nhanh hơn (${m("cmp.csla4.delay_ns")} so với ${m("cmp.rca4.delay_ns")} ns) nhưng ADP kém hơn `
-  + `(${m("cmp.csla4.adp")} so với ${m("cmp.rca4.adp")}). Flatten: CSLA vẫn nhanh hơn và có ADP tốt nhất (${m("cmp.csla4_flat.adp")}).`,
-{ x: 0.5, y: 4.3, w: 9, h: 0.75, fontSize: 14, color: C.text1, isTextBox: true, margin: 0 });
+  + `(${m("cmp.csla4.adp")} so với ${m("cmp.rca4.adp")}). Flatten: CSLA vẫn nhanh hơn và có ADP tốt nhất (${m("cmp.csla4_flat.adp")}), `
+  + "nhưng thứ hạng bản flatten phụ thuộc phiên bản công cụ.",
+{ x: 0.5, y: 4.3, w: 9, h: 0.95, fontSize: 13, color: C.text1, isTextBox: true, margin: 0 });
 
 // 10. OpenLane flow
 s = slideIn("Tổng hợp và vật lý");
@@ -330,7 +331,7 @@ table(s, [
   ["D ước lượng", `${m("le.D_est_tau")} τ = ${m("le.D_est_ps")} ps`],
   ["Sai số so với trước / sau", `${m("le.err_pre_pct")}% / ${m("le.err_post_pct")}%`],
 ], 5.9, 1.1, 3.6, [1.9, 1.7], 12);
-s.addText("Sau layout chậm hơn: điện dung tiếp giáp (ad/as) và dây không có trong netlist schematic",
+s.addText("Netlist schematic không có ad/as/pd/ps nên khoảng cách trước/sau layout bị phóng đại; PEX thêm cả điện dung dây",
   { x: 5.9, y: 3.85, w: 3.6, h: 1.0, fontSize: 13, color: C.text1, isTextBox: true, margin: 0, valign: "top" });
 
 // 15. results vs goals
@@ -357,12 +358,13 @@ s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 5.15, y: 1.15, w: 4.35, h: 2.7, r
 s.addText("Kết luận", { x: 0.7, y: 1.3, w: 4, h: 0.4, fontSize: 18, bold: true, color: C.accent1, isTextBox: true, margin: 0 });
 s.addText("Hướng phát triển", { x: 5.35, y: 1.3, w: 4, h: 0.4, fontSize: 18, bold: true, color: C.accent2, isTextBox: true, margin: 0 });
 bullets(s, [
-  "Đạt mọi mục tiêu chính ở 100 MHz",
-  "Ở 4 bit, CSLA nhanh hơn nhưng ADP kém khi giữ phân cấp",
-  "LE chọn đúng sizing; cần tính ký sinh layout",
+  "Đạt các mục tiêu chính ở 100 MHz",
+  "4 bit: CSLA nhanh hơn, ADP kém hơn",
+  "LE chọn đúng sizing, thiếu ký sinh layout",
+  "FA custom lớn hơn nhiều so với fa_1",
 ], 0.7, 1.85, 3.95, 1.9, 14);
 bullets(s, [
-  "Ghép FA custom vào flow dưới dạng macro",
+  "Đưa FA custom vào flow thành macro",
   "Mở rộng 16/32 bit, square-root CSLA",
   "Thu gọn layout FA, thêm ready_in",
 ], 5.35, 1.85, 3.95, 1.9, 14);
