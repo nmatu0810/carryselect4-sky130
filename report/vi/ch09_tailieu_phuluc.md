@@ -52,4 +52,4 @@ Bảng: Lệnh make chính
 - `analysis/le/le_calc.py`, `analysis/le/run_tau.py`, `analysis/le/fa_path.py`, `analysis/le/compare.py`
 - `custom/fa/gen_layout.py`, `custom/fa/drc.tcl`, `custom/fa/lvs.sh`, `custom/fa/pex.tcl`, `scripts/fa_stats.py`
 - `scripts/figs/make_*.py`, `scripts/figs/vcd_plot.py`
-- `scripts/metrics_to_tex.py`, `report/build_docx.mjs`, `slides/build_slides.mjs`
+- `scripts/metrics_to_tex.py`, `scripts/pnr5_text.py`, `report/build_docx.mjs`, `slides/build_slides.mjs`

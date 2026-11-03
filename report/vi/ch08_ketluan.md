@@ -18,17 +18,23 @@ Bảng: Mục tiêu trong đề cương và kết quả đạt được
 
 ## Hạn chế
 
-- Ở độ rộng 4 bit, CSLA chỉ nhanh hơn RCA khoảng một phần tư nhưng tốn diện tích gần gấp đôi; lợi ích của carry-select chưa thể hiện rõ ở quy mô này.
-- {{pnr5.limit_vi}}
-- FA full-custom chưa được tối ưu diện tích: cell rộng vì có 9 track met1, làm tăng điện dung dây và độ trễ sau layout.
-- Không có backpressure ở đầu ra (D-3), nên lõi chỉ dùng được khi phía nhận luôn sẵn sàng.
+Ở độ rộng 4 bit, CSLA chỉ nhanh hơn RCA khoảng một phần tư nhưng tốn diện tích gần gấp đôi. Lợi ích của carry-select chưa thể hiện rõ ở quy mô này, và nhóm chưa thử độ rộng lớn hơn để xác nhận điểm hòa vốn.
+
+Kết quả so sánh bản flatten phụ thuộc phiên bản công cụ (D6). Trong một môi trường khác (Yosys 0.70, liberty `open_pdks` 1.0.471) các số flatten của Task 7 lệch và thứ tự CSLA/RCA đảo ngược; trên máy nhóm với Yosys 0.66 và PDK ciel thì `make verify-all` không còn số nào lệch. Vì vậy chỉ so sánh giữa hai bản giữ phân cấp là kết luận chắc chắn.
+
+Full Adder full-custom có diện tích lớn hơn nhiều so với cell `fa_1` của thư viện: 20.02 µm² cho `fa_1`, trong khi cell vẽ tay lớn gấp khoảng mười lần. Nhóm chưa tối ưu diện tích, và 9 track met1 chạy ngang làm tăng điện dung dây cùng độ trễ sau layout. Cell này cũng chưa được ghép vào luồng OpenLane (D-8).
+
+Mô phỏng SPICE trước layout không có điện dung khuếch tán, vì netlist schematic thiếu `ad`, `as`, `pd`, `ps`. Do đó khoảng cách giữa kết quả trước và sau layout, và sai số của Logical Effort so với từng kết quả, có phần bị phóng đại. Nhóm chưa chạy lại bản trước layout với các tham số này để tách phần do điện dung khuếch tán khỏi phần do dây.
+
+{{pnr5.limit_vi}}
+
+Cuối cùng, đầu ra không có backpressure (D-3), nên lõi chỉ dùng được khi phía nhận luôn sẵn sàng.
 
 ## Hướng phát triển
 
-- Ghép FA full-custom vào luồng OpenLane dưới dạng macro (sinh LEF/LIB từ layout và kết quả đặc trưng hóa) để so với FA standard cell.
-- Mở rộng lên 8, 16 hoặc 32 bit với CSLA nhiều tầng hoặc kích thước khối không đều (square-root CSLA) để thấy rõ lợi thế so với RCA.
-- Thu gọn layout FA (bớt track, chia sẻ diffusion nhiều hơn) và đưa ký sinh layout vào mô hình Logical Effort.
-- Thêm `ready_in` cho đầu ra để hỗ trợ backpressure.
+Việc nên làm trước là đưa điện dung khuếch tán vào mô phỏng trước layout, để biết sai số của Logical Effort đến từ đâu. Sau đó nhóm muốn thu gọn layout Full Adder (bớt track, chia sẻ diffusion nhiều hơn) và đưa ký sinh của layout vào mô hình Logical Effort.
+
+Hai hướng lớn hơn là ghép Full Adder full-custom vào luồng OpenLane dưới dạng macro, với LEF/LIB sinh từ layout và kết quả đặc trưng hóa, để so trực tiếp với FA standard cell; và mở rộng lên 8, 16 hoặc 32 bit với CSLA nhiều tầng hoặc khối có kích thước không đều (square-root CSLA), nơi lợi thế so với RCA sẽ rõ hơn. Nếu cần dùng lõi trong hệ thống thật, nhóm sẽ thêm `ready_in` ở đầu ra để hỗ trợ backpressure.
 
 ## Phân công công việc
 
