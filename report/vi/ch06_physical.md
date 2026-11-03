@@ -27,7 +27,7 @@ Bảng: Kết quả sau đặt–đi dây ở chu kỳ 10 ns
 
 Setup và hold slack đều dương ở cả 9 corner (trích RC min/nom/max, kết hợp ss/tt/ff), kể cả corner chậm nhất `max_ss_100C_1v60`. Các kiểm tra recovery và removal của `rst_n` nằm trong nhóm đường `asynchronous` và đã được tính vào slack này. Nhóm kiểm tra cả 9 corner chứ không chỉ corner tt, vì setup slack xấu nhất nằm ở corner ss.
 
-Vì slack ở đây là worst slack (D1), fmax được ước lượng bằng 1000 / (10 − slack setup ở tt). Đó là tần số tối đa ước lượng ở corner tt, chưa phải giá trị đã sign-off.
+fmax được ước lượng bằng 1000 / (*T* − *s*) MHz, với *T* = 10 ns và *s* là setup slack ở tt (worst slack, D1). Slack này tính cả đường I/O, mà input/output delay cố định 2 ns không đổi theo chu kỳ, nên *T* − *s* là chu kỳ nhỏ nhất mà đường chặt nhất chịu được. Đây là tần số ước lượng ở corner tt, chưa phải giá trị đã sign-off.
 
 Utilization cuối cao hơn mục tiêu 55%. Lý do là sau floorplan, các bước sửa timing chèn thêm buffer (gồm buffer hold), trong khi die vẫn giữ nguyên kích thước tính ở floorplan. Nhóm giữ nguyên cấu hình 55% theo đề cương và ghi nhận chênh lệch này thay vì chỉnh số để cho đẹp.
 
