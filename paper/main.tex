@@ -114,15 +114,16 @@ budget of 500. We constrained a 10\,ns clock with 2\,ns input and output delays.
 worst setup slack of \metric{sta.synth.wns_setup_ns}\,ns at the typical corner. The register-to-register
 critical path, \texttt{\metric{sta.synth.crit_path}}, arrives after \metric{sta.synth.crit_arrival_ns}\,ns.
 
-Fig.~\ref{fig:ad} compares the CSLA with a 4-bit RCA. With the hierarchy kept, the CSLA is faster
+Fig.~\ref{fig:ad} compares the CSLA with a 4-bit RCA. With the hierarchy kept, the CSLA is clearly faster
 (\metric{cmp.csla4.delay_ns} vs.\ \metric{cmp.rca4.delay_ns}\,ns) and larger
 (\metric{cmp.csla4.area_um2} vs.\ \metric{cmp.rca4.area_um2}\umsq), so its area--delay product is
-worse. When ABC may flatten the logic, both adders shrink and slow down. The flat CSLA is still the
-faster one (\metric{cmp.csla4_flat.delay_ns} vs.\ \metric{cmp.rca4_flat.delay_ns}\,ns) and has the best
-area--delay product. We did not isolate why the speed-up is small at this width; the duplicated upper
-block is the likely cost. The flat ranking also depends on the tool version: an earlier run with
-Yosys 0.70 in another environment ordered the two flat netlists the other way round, so we base our
-conclusion on the hierarchical comparison.
+worse. The CSLA is about 27\% faster but about 1.75 times larger. We attribute the extra area to the
+duplicated upper block (hi0 and hi1), which adds a second 2-bit adder; we did not test this
+explanation separately. When ABC may flatten the logic, both adders shrink and slow down. The flat
+CSLA is still the faster one (\metric{cmp.csla4_flat.delay_ns} vs.\ \metric{cmp.rca4_flat.delay_ns}\,ns)
+and has the best area--delay product. This flat ranking depends on the tool version: an earlier run
+with Yosys 0.70 in another environment ordered the two flat netlists the other way round, so we base
+our conclusion on the hierarchical comparison only.
 
 \begin{figure}[t]
 \centering
@@ -135,7 +136,9 @@ LibreLane places and routes the design with a 55\% core-utilization target and a
 (Fig.~\ref{fig:layout}); Table~\ref{tab:ppa} gives the signoff numbers. Setup and hold slack are
 positive in all nine corners (min/nom/max extraction $\times$ ss/tt/ff), including the
 recovery and removal checks on \texttt{rst\_n}. At the typical corner the estimated maximum frequency
-is \metric{pnr.fmax_mhz}\,MHz. \metric{pnr5.text_en}
+is \metric{pnr.fmax_mhz}\,MHz. We computed it as $f_{max}\approx 1000/(T-s)$ MHz with $T=10$\,ns and $s$ the
+worst setup slack at that corner; $s$ includes the input and output paths, whose 2\,ns delays are fixed,
+so this is an estimate and not a signoff figure. \metric{pnr5.text_en}
 
 \begin{table}[t]
 \centering
@@ -228,8 +231,9 @@ SPICE, extracted & \metric{spice.D_post_ps} & \metric{le.err_post_pct}\% \\
 \section{Conclusion}
 CarrySelect-4 reached its functional and timing targets. Exhaustive simulation passes, the routed
 design closes at 100\,MHz in every corner with clean DRC, LVS and antenna checks, and it uses less than
-half of its area budget. At four bits the carry-select structure is faster than ripple carry but
-loses on area--delay product unless synthesis flattens it. In the full-custom study, Logical Effort
+half of its area budget. At four bits, with the hierarchy kept, the carry-select structure is faster
+than ripple carry but has a worse area--delay product. The flattened netlists rank differently, but that
+ranking depends on the tool version, so we do not draw conclusions from it. In the full-custom study, Logical Effort
 picked the faster of the two sizings and gave a delay inside the pre- and post-layout band. It cannot
 give an accurate absolute delay without a layout-aware parasitic term. The custom cell is a study
 cell and is not used in the standard-cell flow.
