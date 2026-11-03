@@ -35,7 +35,7 @@ Bảng: So sánh hai phương án kích thước (SPICE trước layout, đườ
 | S2 | {{fa.s2.delay_pre_ps}} |
 | Được chọn | {{fa.sizing_chosen}} |
 
-S2 nhanh hơn hơn 3%, nên nhóm chọn S2, copy thành `custom/fa/fa_cell.spice`, và layout cùng LVS đều dùng đúng file này.
+S2 nhanh hơn S1 khoảng 14% (264 so với 306 ps), nên nhóm chọn S2, copy thành `custom/fa/fa_cell.spice`, và layout cùng LVS đều dùng đúng file này.
 
 ## Layout và Euler path
 
